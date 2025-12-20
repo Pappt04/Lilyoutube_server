@@ -6,11 +6,11 @@ Jutjubić je zamišljen kao superiorna video platforma, fokusirana na korisnika,
 
 ## ✎ Autori
 
-[Papp Tamás](https://github.com/Pappt04)
+[Papp Tamás](https://github.com/Pappt04) Student 2
 
-[Apró Dorottya](https://github.com/adorottya)
+[Apró Dorottya](https://github.com/adorottya) Student 3
 
-[Mikro Arsenijević](https://github.com/watenfragen)
+[Mikro Arsenijević](https://github.com/watenfragen) Studen 1
 
 
 ## 📺 Frontend
