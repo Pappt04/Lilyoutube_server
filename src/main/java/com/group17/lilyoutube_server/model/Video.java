@@ -22,9 +22,6 @@ public class Video {
     @Column(nullable = false)
     private String videoPath;
 
-    @Column(nullable = false)
-    private Long videoSize;
-
     @Column
     private String location;
 

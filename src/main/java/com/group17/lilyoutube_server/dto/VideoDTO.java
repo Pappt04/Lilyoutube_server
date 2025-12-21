@@ -6,7 +6,7 @@ import java.util.Collection;
 
 @Data
 public class VideoDTO {
-    private Long id;
+    private Long user_id;
     private String title;
     private String description;
     private String thumbnailPath;
