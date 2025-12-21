@@ -1,47 +1,35 @@
 package com.group17.lilyoutube_server.controller;
 
-import com.group17.lilyoutube_server.dto.VideoDTO;
-import com.group17.lilyoutube_server.service.UserService;
-import com.group17.lilyoutube_server.service.VideoService;
-import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 
 @RestController
 @RequestMapping("/api/videos")
-@RequiredArgsConstructor
 public class VideoController {
 
-    private final VideoService videoService;
+    @PostMapping("/upload")
+    public ResponseEntity<String> uploadVideo(
+            @RequestParam("file") MultipartFile file,
+            @RequestParam("title") String title) {
 
-    @GetMapping
-    public ResponseEntity<List<VideoDTO>> getAllVideos() {
-        return ResponseEntity.ok(videoService.getAllVideos());
-    }
+        if (file.isEmpty()) {
+            return ResponseEntity.badRequest().body("Please select a file to upload.");
+        }
 
-    @GetMapping("/{id}")
-    public ResponseEntity<VideoDTO> getVideoById(@PathVariable Long id)
-    {
-        VideoDTO video = videoService.getVideoById(id);
-        if (video == null)
-            return ResponseEntity.notFound().build();
-        return ResponseEntity.ok(video);
-    }
+        try {
+            System.out.println("Uploading video: " + title);
+            System.out.println("File Name: " + file.getOriginalFilename());
+            System.out.println("File Size: " + file.getSize());
 
-    @PostMapping
-    public ResponseEntity<VideoDTO> createVideo(@RequestBody VideoDTO videoDTO) {
-        return ResponseEntity.ok(videoService.createVideo(videoDTO));
-    }
+            // file.transferTo(new File("/path/to/storage/" + file.getOriginalFilename()));
 
-    @PutMapping("/{id}")
-    public ResponseEntity<VideoDTO> updateVideo(@PathVariable Long id,@RequestBody VideoDTO videoDTO) {
-        return ResponseEntity.ok(videoService.updateVideo(id,videoDTO));
-    }
-
-    @DeleteMapping("/{id}")
-    public void deleteVideo(@PathVariable Long id) {
-        videoService.deleteVideo(id);
+            return ResponseEntity.ok("Video uploaded successfully: " + file.getOriginalFilename());
+        } catch (Exception e) {
+            return ResponseEntity.status(500).body("Upload failed: " + e.getMessage());
+        }
     }
 }

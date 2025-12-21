@@ -11,7 +11,7 @@ import java.util.*;
 @Entity
 @Table(name = "videos")
 @Data
-public class Video {
+public class Post {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Long id;

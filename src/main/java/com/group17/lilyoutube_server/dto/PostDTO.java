@@ -5,7 +5,7 @@ import lombok.Data;
 import java.util.Collection;
 
 @Data
-public class VideoDTO {
+public class PostDTO {
     private Long user_id;
     private String title;
     private String description;
