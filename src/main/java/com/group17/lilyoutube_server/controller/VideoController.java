@@ -27,7 +27,7 @@ public class VideoController {
             System.out.println("File Size: " + file.getSize());
 
             UUID uuid = UUID.randomUUID();
-            String newFileName =  uuid.toString()+"."+getFileExtension(Objects.requireNonNull(file.getOriginalFilename()));
+            String newFileName =  uuid+"."+getFileExtension(Objects.requireNonNull(file.getOriginalFilename()));
 
             file.transferTo(new File(ServerConstants.videoDir +"/" +newFileName));
 
@@ -48,9 +48,9 @@ public class VideoController {
             System.out.println("File Size: " + file.getSize());
 
             UUID uuid = UUID.randomUUID();
-            String newFileName =  uuid.toString()+"."+getFileExtension(Objects.requireNonNull(file.getOriginalFilename()));
+            String newFileName =  uuid+"."+getFileExtension(Objects.requireNonNull(file.getOriginalFilename()));
 
-            file.transferTo(new File(ServerConstants.thumbDir +"/" +uuid.toString()));
+            file.transferTo(new File(ServerConstants.thumbDir +"/" +newFileName));
 
             return ResponseEntity.ok(uuid.toString());
         } catch (Exception e) {
