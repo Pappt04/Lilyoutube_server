@@ -17,30 +17,39 @@ public class PostController {
 
     @GetMapping
     public ResponseEntity<List<PostDTO>> getAllVideos() {
-        return ResponseEntity.ok(postService.getAllVideos());
+        return ResponseEntity.ok(postService.getAllPosts());
     }
 
-    @GetMapping("/{id}")
-    public ResponseEntity<PostDTO> getVideoById(@PathVariable Long id)
+/*    @GetMapping("/{id}")
+    public ResponseEntity<PostDTO> getPostById(@PathVariable Long id)
     {
-        PostDTO video = postService.getVideoById(id);
-        if (video == null)
+        PostDTO post = postService.getPostById(id);
+        if (post == null)
             return ResponseEntity.notFound().build();
-        return ResponseEntity.ok(video);
+        return ResponseEntity.ok(post);
+    }*/
+
+    @GetMapping("/{name}")
+    public ResponseEntity<PostDTO> getPostByVideoId(@PathVariable String name)
+    {
+        PostDTO post = postService.getPostByVideoName(name+".mp4");
+        if(post == null)
+            return ResponseEntity.notFound().build();
+        return ResponseEntity.ok(post);
     }
 
     @PostMapping
-    public ResponseEntity<PostDTO> createVideo(@RequestBody PostDTO postDTO) {
-        return ResponseEntity.ok(postService.createVideo(postDTO));
+    public ResponseEntity<PostDTO> createPost(@RequestBody PostDTO postDTO) {
+        return ResponseEntity.ok(postService.createPost(postDTO));
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<PostDTO> updateVideo(@PathVariable Long id, @RequestBody PostDTO postDTO) {
-        return ResponseEntity.ok(postService.updateVideo(id, postDTO));
+    public ResponseEntity<PostDTO> updatePost(@PathVariable Long id, @RequestBody PostDTO postDTO) {
+        return ResponseEntity.ok(postService.updatePost(id, postDTO));
     }
 
     @DeleteMapping("/{id}")
     public void deleteVideo(@PathVariable Long id) {
-        postService.deleteVideo(id);
+        postService.deletePost(id);
     }
 }
