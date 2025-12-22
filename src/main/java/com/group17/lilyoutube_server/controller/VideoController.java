@@ -1,6 +1,8 @@
 package com.group17.lilyoutube_server.controller;
 
 import com.group17.lilyoutube_server.config.ServerConstants;
+import com.group17.lilyoutube_server.service.ThumbnailService;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -22,7 +24,10 @@ import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/media")
+@RequiredArgsConstructor
 public class VideoController {
+
+    private final ThumbnailService thumbnailService;
 
     @Value("${app.upload.timeout-ms:60000}")
     private long uploadTimeoutMs;
@@ -34,7 +39,11 @@ public class VideoController {
 
     @PostMapping("/upload-picture")
     public ResponseEntity<String> uploadPicture(@RequestParam("file") MultipartFile file) {
-        return handleUpload(file, ServerConstants.thumbDir);
+        ResponseEntity<String> response = handleUpload(file, ServerConstants.thumbDir);
+        if (response.getStatusCode().is2xxSuccessful()) {
+            thumbnailService.evictThumbnail(response.getBody());
+        }
+        return response;
     }
 
     @GetMapping("/videos/{name}")
@@ -43,8 +52,15 @@ public class VideoController {
     }
 
     @GetMapping("/thumbnails/{name}")
-    public ResponseEntity<Resource> getThumbnail(@PathVariable String name) {
-        return getFileAsResource(ServerConstants.thumbDir, name);
+    public ResponseEntity<byte[]> getThumbnail(@PathVariable String name) {
+        ThumbnailService.CachedThumbnail thumbnail = thumbnailService.getThumbnail(name);
+        if (thumbnail != null) {
+            return ResponseEntity.ok()
+                    .contentType(MediaType.parseMediaType(thumbnail.contentType()))
+                    .body(thumbnail.content());
+        } else {
+            return ResponseEntity.notFound().build();
+        }
     }
 
     private ResponseEntity<Resource> getFileAsResource(String directory, String fileName) {
@@ -63,8 +79,6 @@ public class VideoController {
             } else {
                 return ResponseEntity.notFound().build();
             }
-        } catch (MalformedURLException e) {
-            return ResponseEntity.internalServerError().build();
         } catch (IOException e) {
             return ResponseEntity.internalServerError().build();
         }
