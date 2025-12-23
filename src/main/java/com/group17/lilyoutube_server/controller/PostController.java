@@ -20,20 +20,10 @@ public class PostController {
         return ResponseEntity.ok(postService.getAllPosts());
     }
 
-/*    @GetMapping("/{id}")
-    public ResponseEntity<PostDTO> getPostById(@PathVariable Long id)
-    {
-        PostDTO post = postService.getPostById(id);
-        if (post == null)
-            return ResponseEntity.notFound().build();
-        return ResponseEntity.ok(post);
-    }*/
-
     @GetMapping("/{name}")
-    public ResponseEntity<PostDTO> getPostByVideoId(@PathVariable String name)
-    {
-        PostDTO post = postService.getPostByVideoName(name+".mp4");
-        if(post == null)
+    public ResponseEntity<PostDTO> getPostByVideoId(@PathVariable String name) {
+        PostDTO post = postService.getPostByVideoName(name + ".mp4");
+        if (post == null)
             return ResponseEntity.notFound().build();
         return ResponseEntity.ok(post);
     }
@@ -51,5 +41,11 @@ public class PostController {
     @DeleteMapping("/{id}")
     public void deleteVideo(@PathVariable Long id) {
         postService.deletePost(id);
+    }
+
+    @PostMapping("/{id}/view")
+    public ResponseEntity<Void> incrementViews(@PathVariable Long id) {
+        postService.incrementViews(id);
+        return ResponseEntity.ok().build();
     }
 }

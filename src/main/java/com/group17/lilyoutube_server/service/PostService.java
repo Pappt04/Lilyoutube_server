@@ -39,7 +39,7 @@ public class PostService {
     public PostDTO createPost(PostDTO postDTO) {
         Post post = postMapper.toEntity(postDTO);
 
-        Optional<User> current= userRepository.findById(postDTO.getUser_id());
+        Optional<User> current = userRepository.findById(postDTO.getUser_id());
 
         current.ifPresent(post::setUser);
         post.setCreatedAt(LocalDateTime.now());
@@ -57,5 +57,9 @@ public class PostService {
 
     public void deletePost(Long id) {
         postRepository.deleteById(id);
+    }
+
+    public void incrementViews(Long id) {
+        postRepository.incrementViewsCount(id);
     }
 }

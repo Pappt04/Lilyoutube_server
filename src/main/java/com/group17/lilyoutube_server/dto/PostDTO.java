@@ -12,5 +12,8 @@ public class PostDTO {
     private String thumbnailPath;
     private String videoPath;
     private String location;
+    private Long likesCount;
+    private Long commentsCount;
+    private Long viewsCount;
     private Collection<String> tags;
 }
