@@ -23,7 +23,7 @@ public class PostService {
     private final PostMapper postMapper;
 
     public List<PostDTO> getAllPosts() {
-        return postRepository.findAll().stream()
+        return postRepository.findAllByOrderByCreatedAtDesc().stream()
                 .map(postMapper::toDto)
                 .collect(Collectors.toList());
     }

@@ -6,6 +6,7 @@ import java.util.Collection;
 
 @Data
 public class PostDTO {
+    private Long id;
     private Long user_id;
     private String title;
     private String description;
@@ -16,4 +17,5 @@ public class PostDTO {
     private Long commentsCount;
     private Long viewsCount;
     private Collection<String> tags;
+    private java.time.LocalDateTime createdAt;
 }

@@ -28,4 +28,10 @@ public class UserService {
         User savedUser = userRepository.save(user);
         return userMapper.toDto(savedUser);
     }
+
+    public UserDTO getUserById(Long id) {
+        return userRepository.findById(id)
+                .map(userMapper::toDto)
+                .orElse(null);
+    }
 }
