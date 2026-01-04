@@ -1,8 +1,8 @@
 # 📽️  Jutjubić Backend Service (ISA 2025)
 
-Ovo je serverska komponenta za platformu za video streaming Jutjubić, razvijena kao projekat za predmet Internet Softverske Arhitekture (ISA).
+Ovo je serverska komponenta za platformu za post streaming Jutjubić, razvijena kao projekat za predmet Internet Softverske Arhitekture (ISA).
 
-Jutjubić je zamišljen kao superiorna video platforma, fokusirana na korisnika, čija je misija da pruži iskustvo bez reklama, prekida i algoritamske manipulacije. Ovaj backend servis je odgovoran za svu ključnu poslovnu logiku, autentifikaciju korisnika, perzistenciju podataka i izlaganje RESTful API-ja koji koristi Angular frontend.
+Jutjubić je zamišljen kao superiorna post platforma, fokusirana na korisnika, čija je misija da pruži iskustvo bez reklama, prekida i algoritamske manipulacije. Ovaj backend servis je odgovoran za svu ključnu poslovnu logiku, autentifikaciju korisnika, perzistenciju podataka i izlaganje RESTful API-ja koji koristi Angular frontend.
 
 ## ✎ Autori
 
@@ -23,7 +23,7 @@ Backend je izgrađen kao dekuplovani REST API koristeći Spring Boot, prateći s
 
 Tehnološki stek: Java, Spring Boot, Spring Data JPA.
 
-Svrha: Izlaganje sigurnih i kontrolisanih endpoint-a za upravljanje korisnicima, video zapisima, komentarima i ostalim funkcionalnostima platforme.
+Svrha: Izlaganje sigurnih i kontrolisanih endpoint-a za upravljanje korisnicima, post zapisima, komentarima i ostalim funkcionalnostima platforme.
 
 Komunikacija: Komunicira sa klijentom (Angular SPA) koristeći JSON format preko HTTP protokola.
 
