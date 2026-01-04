@@ -1,0 +1,19 @@
+{
+  "ExpandedNodes": [
+    "",
+    "\\.mvn",
+    "\\.mvn\\wrapper",
+    "\\scripts",
+    "\\src",
+    "\\src\\main",
+    "\\src\\main\\java",
+    "\\src\\main\\java\\com",
+    "\\src\\main\\java\\com\\group17",
+    "\\src\\main\\java\\com\\group17\\lilyoutube_server",
+    "\\src\\main\\java\\com\\group17\\lilyoutube_server\\util",
+    "\\src\\main\\java\\com\\group17\\lilyoutube_server\\util\\mappers",
+    "\\src\\main\\resources"
+  ],
+  "SelectedNode": "\\.mvn",
+  "PreviewInSolutionExplorer": false
+}

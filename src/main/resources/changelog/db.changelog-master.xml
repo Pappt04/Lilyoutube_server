@@ -5,4 +5,120 @@
         xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
         http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.24.xsd">
 
+    <changeSet id="001-create-app-user" author="group17">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <tableExists tableName="app_user"/>
+            </not>
+        </preConditions>
+
+        <createTable tableName="app_user">
+            <column name="id" type="BIGINT" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+
+            <column name="username" type="VARCHAR(100)">
+                <constraints nullable="false" unique="true"/>
+            </column>
+
+            <column name="email" type="VARCHAR(255)">
+                <constraints nullable="false" unique="true"/>
+            </column>
+
+            <column name="password" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+
+            <column name="first_name" type="VARCHAR(100)"/>
+            <column name="last_name" type="VARCHAR(100)"/>
+            <column name="address" type="VARCHAR(255)"/>
+
+            <column name="enabled" type="BOOLEAN" defaultValueBoolean="false">
+                <constraints nullable="false"/>
+            </column>
+
+            <column name="created_at" type="TIMESTAMP" defaultValueComputed="NOW()">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+    </changeSet>
+
+    <!-- 002: auth_token (activation token) -->
+    <changeSet id="002-create-auth-token" author="group17">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <tableExists tableName="auth_token"/>
+            </not>
+        </preConditions>
+
+        <createTable tableName="auth_token">
+            <column name="id" type="BIGINT" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+
+            <column name="token" type="VARCHAR(255)">
+                <constraints nullable="false" unique="true"/>
+            </column>
+
+            <column name="type" type="VARCHAR(50)">
+                <constraints nullable="false"/>
+            </column>
+
+            <column name="expires_at" type="TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+
+            <column name="used_at" type="TIMESTAMP"/>
+
+            <column name="user_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+
+            <column name="created_at" type="TIMESTAMP" defaultValueComputed="NOW()">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+        <addForeignKeyConstraint
+                baseTableName="auth_token"
+                baseColumnNames="user_id"
+                referencedTableName="app_user"
+                referencedColumnNames="id"
+                constraintName="fk_auth_token_user"
+                onDelete="CASCADE"/>
+
+        <createIndex tableName="auth_token" indexName="idx_auth_token_token">
+            <column name="token"/>
+        </createIndex>
+    </changeSet>
+    <!-- 003: activation_token -->
+    <changeSet id="003-add-activation-token" author="group17">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <columnExists tableName="app_user" columnName="activation_token"/>
+            </not>
+        </preConditions>
+        <addColumn tableName="app_user">
+            <column name="activation_token" type="varchar(255)"/>
+        </addColumn>
+    </changeSet>
+
+    <!-- 004: unique constraint for activation_token -->
+    <changeSet id="004-unique-activation-token" author="group17">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <uniqueConstraintExists tableName="app_user" constraintName="uk_app_user_activation_token"/>
+            </not>
+        </preConditions>
+        <addUniqueConstraint tableName="app_user"
+                             columnNames="activation_token"
+                             constraintName="uk_app_user_activation_token"/>
+    </changeSet>
+    <changeSet id="010-drop-auth-token-type" author="group17">
+        <preConditions onFail="MARK_RAN">
+            <columnExists tableName="auth_token" columnName="type"/>
+        </preConditions>
+        <dropColumn tableName="auth_token" columnName="type"/>
+    </changeSet>
+
 </databaseChangeLog>
