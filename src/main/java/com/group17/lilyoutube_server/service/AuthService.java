@@ -25,9 +25,6 @@ public class AuthService {
     private final PasswordEncoder passwordEncoder;
     private final AuthenticationManager authenticationManager;
 
-    @Value("${app.base-url:http://localhost:8080}")
-    private String baseUrl;
-
     public AuthService(UserRepository userRepository,
                        AuthTokenRepository authTokenRepository,
                        PasswordEncoder passwordEncoder,
@@ -38,7 +35,7 @@ public class AuthService {
         this.authenticationManager = authenticationManager;
     }
 
-    public String register(RegisterRequest req) {
+    public User register(RegisterRequest req) {
         if (!req.password.equals(req.confirmPassword)) {
             throw new IllegalArgumentException("Lozinke se ne poklapaju.");
         }
@@ -63,11 +60,7 @@ public class AuthService {
 
         userRepository.save(u);
 
-        // DEV varijanta: ispiši link u konzolu
-        String activationLink = baseUrl + "/api/auth/activate?token=" + token;
-        System.out.println("ACTIVATION LINK: " + activationLink);
-
-        return "Registracija uspešna. Proveri konzolu za aktivacioni link.";
+        return u;
     }
 
     public String activate(String token) {
@@ -105,4 +98,5 @@ public class AuthService {
 
         return t.getToken();
     }
+
 }

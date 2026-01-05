@@ -1,5 +1,6 @@
 package com.group17.lilyoutube_server.config;
 
+import com.group17.lilyoutube_server.service.DbUserDetailsService;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;

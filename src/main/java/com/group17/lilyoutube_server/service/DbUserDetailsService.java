@@ -1,4 +1,4 @@
-package com.group17.lilyoutube_server.config;
+package com.group17.lilyoutube_server.service;
 
 import com.group17.lilyoutube_server.model.User;
 import com.group17.lilyoutube_server.repository.UserRepository;
