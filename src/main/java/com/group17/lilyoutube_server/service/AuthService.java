@@ -93,7 +93,7 @@ public class AuthService {
         AuthToken t = new AuthToken();
         t.setToken(UUID.randomUUID().toString());
         t.setUser(u);
-        t.setExpiresAt(Instant.now().plus(24, ChronoUnit.HOURS));
+        t.setExpiresAt(Instant.now().plus(24, ChronoUnit.DAYS));
         authTokenRepository.save(t);
 
         return t.getToken();

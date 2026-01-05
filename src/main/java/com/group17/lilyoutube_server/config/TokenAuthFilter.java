@@ -1,5 +1,6 @@
 package com.group17.lilyoutube_server.config;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.group17.lilyoutube_server.model.AuthToken;
 import com.group17.lilyoutube_server.repository.AuthTokenRepository;
 import jakarta.servlet.FilterChain;
@@ -16,6 +17,7 @@ import org.springframework.web.filter.OncePerRequestFilter;
 import java.io.IOException;
 import java.time.Instant;
 import java.util.List;
+import java.util.Map;
 
 @Component
 public class TokenAuthFilter extends OncePerRequestFilter {
@@ -55,10 +57,16 @@ public class TokenAuthFilter extends OncePerRequestFilter {
             return;
         }
 
-        String token = header.substring(7);
+        ObjectMapper mapper = new ObjectMapper();
+        Map<String, String> data = mapper.readValue(header.substring(7), Map.class);
+
+        String token = data.get("token");
 
         AuthToken t = authTokenRepository.findByToken(token).orElse(null);
         if (t == null || t.getExpiresAt().isBefore(Instant.now())) {
+
+            if(t!= null) authTokenRepository.deleteById(t.getId());
+
             response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Invalid or expired token");
             return;
         }
