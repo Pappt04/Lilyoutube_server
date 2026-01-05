@@ -1,7 +1,6 @@
 package com.group17.lilyoutube_server.controller;
 
 import com.group17.lilyoutube_server.dto.UserDTO;
-import com.group17.lilyoutube_server.model.User;
 import com.group17.lilyoutube_server.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -19,7 +18,8 @@ public class UserController {
     private final UserService userService;
 
     @GetMapping("/all")
-    public ResponseEntity<List<UserDTO>> getAllUsers(Principal principal) {
+    public ResponseEntity<List<UserDTO>> getAllUsers() {
+        //TODO implement so that only admins can get all users
         return ResponseEntity.ok(userService.getAllUsers());
     }
 
