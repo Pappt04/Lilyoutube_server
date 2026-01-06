@@ -1,11 +1,16 @@
 package com.group17.lilyoutube_server.controller;
 
 import com.group17.lilyoutube_server.dto.PostDTO;
+import com.group17.lilyoutube_server.dto.UserDTO;
 import com.group17.lilyoutube_server.service.PostService;
+import com.group17.lilyoutube_server.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
+import java.security.Principal;
 import java.util.List;
 
 @RestController
@@ -14,6 +19,7 @@ import java.util.List;
 public class PostController {
 
     private final PostService postService;
+    private final UserService userService;
 
     @GetMapping
     public ResponseEntity<List<PostDTO>> getAllVideos() {
@@ -28,8 +34,25 @@ public class PostController {
         return ResponseEntity.ok(post);
     }
 
+    @PostMapping(consumes = { "multipart/form-data" })
+    public ResponseEntity<PostDTO> createPostWithFiles(
+            @RequestPart("post") String postJson,
+            @RequestPart("video") MultipartFile video,
+            @RequestPart("thumbnail") MultipartFile thumbnail, Principal principal) throws Exception {
+
+        ObjectMapper objectMapper = new ObjectMapper();
+        PostDTO postDTO = objectMapper.readValue(postJson, PostDTO.class);
+
+        UserDTO usr = userService.getUserByEmail(principal.getName());
+        postDTO.setUser_id(usr.getId());
+
+        return ResponseEntity.ok(postService.createPost(postDTO, video, thumbnail));
+    }
+
     @PostMapping
-    public ResponseEntity<PostDTO> createPost(@RequestBody PostDTO postDTO) {
+    public ResponseEntity<PostDTO> createPost(@RequestBody PostDTO postDTO, Principal principal) {
+        UserDTO usr = userService.getUserByEmail(principal.getName());
+        postDTO.setUser_id(usr.getId());
         return ResponseEntity.ok(postService.createPost(postDTO));
     }
 
