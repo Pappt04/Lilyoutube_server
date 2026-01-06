@@ -29,54 +29,41 @@ public class TokenAuthFilter extends OncePerRequestFilter {
     }
 
     @Override
-    protected boolean shouldNotFilter(HttpServletRequest request) {
-        String path = request.getRequestURI();
-        String method = request.getMethod();
-
-        // CORS preflight
-        if ("OPTIONS".equalsIgnoreCase(method)) return true;
-
-        // javne rute
-        return path.startsWith("/api/auth")
-                || path.startsWith("/swagger-ui")
-                || path.equals("/swagger-ui.html")
-                || path.startsWith("/v3/api-docs")
-                || path.startsWith("/error");
-    }
-
-    @Override
     protected void doFilterInternal(HttpServletRequest request,
-                                    HttpServletResponse response,
-                                    FilterChain chain)
+            HttpServletResponse response,
+            FilterChain chain)
             throws ServletException, IOException {
+
+        if ("OPTIONS".equalsIgnoreCase(request.getMethod())) {
+            chain.doFilter(request, response);
+            return;
+        }
 
         String header = request.getHeader(HttpHeaders.AUTHORIZATION);
 
         if (header == null || !header.startsWith("Bearer ")) {
-            response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Missing Authorization Bearer token");
+            chain.doFilter(request, response);
             return;
         }
 
-        ObjectMapper mapper = new ObjectMapper();
-        Map<String, String> data = mapper.readValue(header.substring(7), Map.class);
+        try {
+            ObjectMapper mapper = new ObjectMapper();
+            Map<String, String> data = mapper.readValue(header.substring(7), Map.class);
+            String token = data.get("token");
 
-        String token = data.get("token");
-
-        AuthToken t = authTokenRepository.findByToken(token).orElse(null);
-        if (t == null || t.getExpiresAt().isBefore(Instant.now())) {
-
-            if(t!= null) authTokenRepository.deleteById(t.getId());
-
-            response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Invalid or expired token");
-            return;
+            AuthToken t = authTokenRepository.findByToken(token).orElse(null);
+            if (t != null && t.getExpiresAt().isAfter(Instant.now())) {
+                var auth = new UsernamePasswordAuthenticationToken(
+                        t.getUser().getEmail(),
+                        null,
+                        List.of(new SimpleGrantedAuthority("ROLE_USER")));
+                SecurityContextHolder.getContext().setAuthentication(auth);
+            } else if (t != null) {
+                authTokenRepository.deleteById(t.getId());
+            }
+        } catch (Exception e) {
+            // Unsuccessful authentication, proceed without authentication
         }
-
-        var auth = new UsernamePasswordAuthenticationToken(
-                t.getUser().getEmail(),
-                null,
-                List.of(new SimpleGrantedAuthority("ROLE_USER"))
-        );
-        SecurityContextHolder.getContext().setAuthentication(auth);
 
         chain.doFilter(request, response);
     }

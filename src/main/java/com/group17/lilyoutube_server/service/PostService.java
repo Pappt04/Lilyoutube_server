@@ -28,9 +28,9 @@ public class PostService {
     private final PostMapper postMapper;
 
     public List<PostDTO> getAllPosts() {
-        return postRepository.findAll().stream()
-                .map(postMapper::toDto)
-                .collect(Collectors.toList());
+        List<Post> ptdo= postRepository.findAll();//.stream().map(postMapper::toDto).collect(Collectors.toList());
+
+        return ptdo.stream().map(postMapper::toDto).collect(Collectors.toList());
     }
 
     public PostDTO getPostById(Long id) {

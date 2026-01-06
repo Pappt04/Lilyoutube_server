@@ -19,23 +19,21 @@ public class UserController {
 
     @GetMapping("/all")
     public ResponseEntity<List<UserDTO>> getAllUsers() {
-        //TODO implement so that only admins can get all users
+        // TODO implement so that only admins can get all users
         return ResponseEntity.ok(userService.getAllUsers());
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<UserDTO> getUserById(@PathVariable Long id, Principal principal) {
+    public ResponseEntity<UserDTO> getUserById(@PathVariable Long id) {
         UserDTO userDTO = userService.getUserById(id);
-
-        String s= principal.getName();
-        if (!userDTO.getEmail().equals(s)) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
-        }
         return ResponseEntity.ok(userDTO);
     }
 
     @GetMapping("/me")
     public ResponseEntity<UserDTO> getMyUser(Principal principal) {
+        if (principal == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
         return ResponseEntity.ok(userService.getUserByEmail(principal.getName()));
     }
 }
