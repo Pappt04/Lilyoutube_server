@@ -27,7 +27,7 @@ public class PostController {
     }
 
     @GetMapping("/{name}")
-    public ResponseEntity<PostDTO> getPostByVideoId(@PathVariable String name) {
+    public ResponseEntity<PostDTO> getPostByVideoName(@PathVariable String name) {
         PostDTO post = postService.getPostByVideoName(name + ".mp4");
         if (post == null)
             return ResponseEntity.notFound().build();
@@ -66,9 +66,13 @@ public class PostController {
         postService.deletePost(id);
     }
 
-    @PostMapping("/{id}/view")
-    public ResponseEntity<Void> incrementViews(@PathVariable Long id) {
-        postService.incrementViews(id);
+    @PostMapping("/{name}/view")
+    public ResponseEntity<Void> incrementViews(@PathVariable String name) {
+        name += ".mp4";
+        PostDTO p= postService.getPostByVideoName(name);
+        if(p == null) return ResponseEntity.notFound().build();
+
+        postService.incrementViews(p.getId());
         return ResponseEntity.ok().build();
     }
 }
