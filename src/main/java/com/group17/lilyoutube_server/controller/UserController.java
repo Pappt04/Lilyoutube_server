@@ -3,9 +3,11 @@ package com.group17.lilyoutube_server.controller;
 import com.group17.lilyoutube_server.dto.UserDTO;
 import com.group17.lilyoutube_server.service.UserService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.security.Principal;
 import java.util.List;
 
 @RestController
@@ -15,13 +17,25 @@ public class UserController {
 
     private final UserService userService;
 
-    @GetMapping
+    @GetMapping("/all")
     public ResponseEntity<List<UserDTO>> getAllUsers() {
+        //TODO implement so that only admins can get all users
         return ResponseEntity.ok(userService.getAllUsers());
     }
 
-    @PostMapping
-    public ResponseEntity<UserDTO> createUser(@RequestBody UserDTO userDTO) {
-        return ResponseEntity.ok(userService.createUser(userDTO));
+    @GetMapping("/{id}")
+    public ResponseEntity<UserDTO> getUserById(@PathVariable Long id, Principal principal) {
+        UserDTO userDTO = userService.getUserById(id);
+
+        String s= principal.getName();
+        if (!userDTO.getEmail().equals(s)) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        }
+        return ResponseEntity.ok(userDTO);
+    }
+
+    @GetMapping("/me")
+    public ResponseEntity<UserDTO> getMyUser(Principal principal) {
+        return ResponseEntity.ok(userService.getUserByEmail(principal.getName()));
     }
 }
