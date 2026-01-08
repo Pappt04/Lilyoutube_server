@@ -10,5 +10,6 @@ public interface PostMapper {
     @Mapping(source = "user.id", target = "user_id")
     PostDTO toDto(Post post);
 
+    @Mapping(source = "user_id", target = "user.id")
     Post toEntity(PostDTO postDTO);
 }

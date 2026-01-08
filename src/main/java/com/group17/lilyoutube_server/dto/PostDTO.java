@@ -2,6 +2,7 @@ package com.group17.lilyoutube_server.dto;
 
 import lombok.Data;
 
+import java.time.LocalDateTime;
 import java.util.Collection;
 
 @Data
@@ -17,5 +18,5 @@ public class PostDTO {
     private Long commentsCount;
     private Long viewsCount;
     private Collection<String> tags;
-    private java.time.LocalDateTime createdAt;
+    private LocalDateTime createdAt;
 }

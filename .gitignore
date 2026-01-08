@@ -33,6 +33,7 @@ build/
 .vscode/
 /.env
 /src/main/resources/changelog/*.sql
+.vs/
 /media/thumbnails/
 /media/videos/
 /src/main/resources/db/changelog/generated/
