@@ -3,6 +3,8 @@ package com.group17.lilyoutube_server.config;
 import com.group17.lilyoutube_server.service.DbUserDetailsService;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
+import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -68,7 +70,7 @@ public class SecurityConfig {
                                                                 "/error")
                                                 .permitAll()
                                                 .requestMatchers(HttpMethod.GET, "/api/users", "/api/users/**",
-                                                                "/api/posts", "/api/posts/**", "/api/media/**")
+                                                                "/api/posts", "/api/posts/**", "/api/media/**", "/api/comments",  "/api/comments/**")
                                                 .permitAll()
                                                 .anyRequest().authenticated());
 

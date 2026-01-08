@@ -49,4 +49,10 @@ public class UserService implements UserDetailsService {
                 .authorities(List.of(new SimpleGrantedAuthority("ROLE_USER")))
                 .build();
     }
+
+    public UserDTO getUserById(Long id) {
+        return userRepository.findById(id)
+                .map(userMapper::toDto)
+                .orElse(null);
+    }
 }
