@@ -27,12 +27,6 @@ public class UserService implements UserDetailsService {
                 .collect(Collectors.toList());
     }
 
-    public UserDTO getUserById(Long id) {
-        return userRepository.findById(id)
-                .map(userMapper::toDto)
-                .orElseThrow(() -> new IllegalArgumentException("User not found"));
-    }
-
     public UserDTO getUserByEmail(String email) {
         return userRepository.findByEmail(email).map(userMapper::toDto).orElseThrow(() -> new IllegalArgumentException("User not found"));
     }
@@ -53,6 +47,6 @@ public class UserService implements UserDetailsService {
     public UserDTO getUserById(Long id) {
         return userRepository.findById(id)
                 .map(userMapper::toDto)
-                .orElse(null);
+                .orElseThrow(() -> new IllegalArgumentException("User not found"));
     }
 }
