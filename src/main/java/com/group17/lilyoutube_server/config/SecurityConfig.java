@@ -22,8 +22,8 @@ public class SecurityConfig {
                                 "/api/auth/**"
                         ).permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/comments/**").permitAll()
-                        .requestMatchers(HttpMethod.POST, "/api/comments/**").authenticated()
-                        .anyRequest().authenticated());
+                        .requestMatchers(HttpMethod.POST, "/api/comments/**").permitAll()
+                        .anyRequest().permitAll());
         return http.build();
 
 
