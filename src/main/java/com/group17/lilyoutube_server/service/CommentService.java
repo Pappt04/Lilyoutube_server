@@ -44,7 +44,7 @@ public class CommentService {
                 return commentCache.get(cacheKey, k -> {
                         log.info("Fetching comments for post {} page {} from database", postId, page);
                         return commentRepository
-                                        .findByPostIdOrderByCreatedAtDesc(postId, (Pageable) PageRequest.of(page, 20))
+                                        .findByPostIdOrderByCreatedAtDesc(postId, PageRequest.of(page, 20))
                                         .map(commentMapper::toDto);
                 });
         }
