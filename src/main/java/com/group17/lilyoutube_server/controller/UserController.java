@@ -32,12 +32,7 @@ public class UserController {
         return ResponseEntity.ok(user);
     }
 
-    @PostMapping
-    public ResponseEntity<UserDTO> createUser(@RequestBody UserDTO userDTO) {
-        return ResponseEntity.ok(userService.createUser(userDTO));
-        UserDTO userDTO = userService.getUserById(id);
-        return ResponseEntity.ok(userDTO);
-    }
+
 
     @GetMapping("/me")
     public ResponseEntity<UserDTO> getMyUser(Principal principal) {

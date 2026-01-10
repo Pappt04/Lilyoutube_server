@@ -10,6 +10,7 @@ import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
+import java.io.Console;
 import java.io.File;
 
 @Service
@@ -25,6 +26,7 @@ public class EmailService {
         message.setTo(toEmail);
         message.setSubject(subject);
         message.setText(body);
+        System.out.println(body);
 
         mailSender.send(message);
         System.out.println("Mail sent successfully...");
