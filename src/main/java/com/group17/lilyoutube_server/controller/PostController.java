@@ -2,6 +2,7 @@ package com.group17.lilyoutube_server.controller;
 
 import com.group17.lilyoutube_server.dto.PostDTO;
 import com.group17.lilyoutube_server.dto.UserDTO;
+import com.group17.lilyoutube_server.service.LikeService;
 import com.group17.lilyoutube_server.service.PostService;
 import com.group17.lilyoutube_server.service.UserService;
 import lombok.RequiredArgsConstructor;
@@ -20,6 +21,7 @@ public class PostController {
 
     private final PostService postService;
     private final UserService userService;
+    private final LikeService likeService;
 
     @GetMapping
     public ResponseEntity<List<PostDTO>> getAllVideos() {
@@ -69,10 +71,31 @@ public class PostController {
     @PostMapping("/{name}/view")
     public ResponseEntity<Void> incrementViews(@PathVariable String name) {
         name += ".mp4";
-        PostDTO p= postService.getPostByVideoName(name);
-        if(p == null) return ResponseEntity.notFound().build();
+        PostDTO p = postService.getPostByVideoName(name);
+        if (p == null)
+            return ResponseEntity.notFound().build();
 
         postService.incrementViews(p.getId());
         return ResponseEntity.ok().build();
+    }
+
+    @PostMapping("/{id}/like")
+    public ResponseEntity<Void> likePost(@PathVariable Long id, Principal principal) {
+        likeService.likePost(id, principal.getName());
+        return ResponseEntity.ok().build();
+    }
+
+    @PostMapping("/{id}/unlike")
+    public ResponseEntity<Void> unlikePost(@PathVariable Long id, Principal principal) {
+        likeService.unlikePost(id, principal.getName());
+        return ResponseEntity.ok().build();
+    }
+
+    @GetMapping("/{id}/liked")
+    public ResponseEntity<Boolean> isLiked(@PathVariable Long id, Principal principal) {
+        if (principal == null) {
+            return ResponseEntity.ok(false);
+        }
+        return ResponseEntity.ok(postService.isLikedByUser(id, principal.getName()));
     }
 }

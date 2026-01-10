@@ -5,6 +5,7 @@ import com.group17.lilyoutube_server.model.Post;
 import com.group17.lilyoutube_server.model.User;
 import com.group17.lilyoutube_server.repository.UserRepository;
 import com.group17.lilyoutube_server.repository.PostRepository;
+import com.group17.lilyoutube_server.repository.LikeRepository;
 import com.group17.lilyoutube_server.util.mappers.PostMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -22,6 +23,7 @@ import java.util.stream.Collectors;
 public class PostService {
     private final PostRepository postRepository;
     private final UserRepository userRepository;
+    private final LikeRepository likeRepository;
     private final FileService fileService;
     private final ThumbnailService thumbnailService;
 
@@ -98,5 +100,13 @@ public class PostService {
 
     public void incrementViews(Long id) {
         postRepository.incrementViewsCount(id);
+    }
+
+    public boolean isLikedByUser(Long postId, String userEmail) {
+        User user = userRepository.findByEmail(userEmail).orElse(null);
+        if (user == null) {
+            return false;
+        }
+        return likeRepository.existsByUserIdAndPostId(user.getId(), postId);
     }
 }

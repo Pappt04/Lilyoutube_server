@@ -15,9 +15,21 @@ import java.util.Optional;
 public interface PostRepository extends JpaRepository<Post, Long> {
 
     Optional<Post> findByVideoPath(String videoPath);
+
     List<Post> findAllByOrderByCreatedAtDesc();
+
     @Modifying
     @Transactional
     @Query("UPDATE Post p SET p.viewsCount = p.viewsCount + 1 WHERE p.id = :id")
     void incrementViewsCount(@Param("id") Long id);
+
+    @Modifying
+    @Transactional
+    @Query("UPDATE Post p SET p.likesCount = p.likesCount + 1 WHERE p.id = :id")
+    void incrementLikesCount(@Param("id") Long id);
+
+    @Modifying
+    @Transactional
+    @Query("UPDATE Post p SET p.likesCount = p.likesCount - 1 WHERE p.id = :id AND p.likesCount > 0")
+    void decrementLikesCount(@Param("id") Long id);
 }
