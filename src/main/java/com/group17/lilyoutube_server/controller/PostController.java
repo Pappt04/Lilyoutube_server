@@ -90,4 +90,12 @@ public class PostController {
         likeService.unlikePost(id, principal.getName());
         return ResponseEntity.ok().build();
     }
+
+    @GetMapping("/{id}/liked")
+    public ResponseEntity<Boolean> isLiked(@PathVariable Long id, Principal principal) {
+        if (principal == null) {
+            return ResponseEntity.ok(false);
+        }
+        return ResponseEntity.ok(postService.isLikedByUser(id, principal.getName()));
+    }
 }
