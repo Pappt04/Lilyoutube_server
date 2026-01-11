@@ -35,12 +35,11 @@ public class EmailService {
     public void sendEmailWithAttachment(String to, String subject, String body, String pathToAttachment) throws MessagingException {
         MimeMessage message = mailSender.createMimeMessage();
 
-        // Set 'true' as the second parameter to indicate multipart/attachment
         MimeMessageHelper helper = new MimeMessageHelper(message, true);
 
         helper.setTo(to);
         helper.setSubject(subject);
-        helper.setText(body, true); // 'true' here indicates the body is HTML
+        helper.setText(body, true);
 
         FileSystemResource file = new FileSystemResource(new File(pathToAttachment));
         helper.addAttachment("Invoice.pdf", file);

@@ -65,7 +65,6 @@ public class PostService {
             return postMapper.toDto(savedPost);
 
         } catch (Exception e) {
-            // Cleanup files if any were uploaded
             if (videoName != null) {
                 fileService.deleteFile(ServerConstants.videoDir + "/" + videoName);
             }
@@ -76,7 +75,6 @@ public class PostService {
         }
     }
 
-    // Keeping the original createPost for internal use or simple cases
     public PostDTO createPost(PostDTO postDTO) {
         Post post = postMapper.toEntity(postDTO);
         Optional<User> current = userRepository.findById(postDTO.getUser_id());

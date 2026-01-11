@@ -15,10 +15,10 @@ public class CorsConfig {
             public void addCorsMappings(CorsRegistry registry) {
                 //TODO Change after testing
                 registry.addMapping("/**")
-                        .allowedOriginPatterns("*") // Allows any origin even with credentials
-                        .allowedMethods("*")        // Allows all HTTP methods
-                        .allowedHeaders("*")        // Allows all headers
-                        .allowCredentials(true)     // Allows cookies/auth headers
+                        .allowedOriginPatterns("*")
+                        .allowedMethods("*")
+                        .allowedHeaders("*")
+                        .allowCredentials(true)
                         .maxAge(3600);
             }
         };

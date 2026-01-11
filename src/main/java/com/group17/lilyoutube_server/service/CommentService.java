@@ -58,7 +58,6 @@ public class CommentService {
                                 .orElseThrow(() -> new ResponseStatusException(
                                                 HttpStatus.NOT_FOUND, "Post not found"));
 
-                // ⏱ rate limit – 60 komment / óra
                 LocalDateTime oneHourAgo = LocalDateTime.now().minusHours(1);
                 long count = commentRepository.countByUserIdAndCreatedAtAfter(
                                 user.getId(),
@@ -77,7 +76,6 @@ public class CommentService {
 
                 Comment saved = commentRepository.save(comment);
 
-                // Evict cache for this post as a new comment was added
                 commentCache.asMap().keySet().removeIf(key -> key.startsWith(post.getId() + "-"));
                 log.info("Evicted comment cache for post {}", post.getId());
 
