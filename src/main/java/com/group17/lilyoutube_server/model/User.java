@@ -8,7 +8,7 @@ import lombok.Data;
 @Table(name = "app_user")
 public class User {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @GeneratedValue(strategy = GenerationType.AUTO)
     private Long id;
 
     @Column(unique = true)
@@ -16,4 +16,22 @@ public class User {
 
     @Column(unique = true)
     private String email;
+
+    @Column(nullable = false)
+    private String password;
+
+    @Column(nullable = false)
+    private String firstName;
+
+    @Column(nullable = false)
+    private String lastName;
+
+    @Column(nullable = false)
+    private String address;
+
+    @Column(nullable = false)
+    private boolean enabled = false;
+
+    @Column(unique = true)
+    private String activationToken;
 }

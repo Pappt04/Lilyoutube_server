@@ -1,0 +1,132 @@
+@startuml Lilyoutube_Class_Architecture
+!theme plain
+' This command fixes the error by allowing database/node/folder to coexist with classes
+allowmixing
+
+skinparam componentStyle uml2
+skinparam packageStyle rectangle
+skinparam shadowing false
+
+title Lilyoutube System Architecture
+
+package "Client Layer" {
+  class "Client Application" as client <<Web/Mobile>>
+}
+
+package "Security & Config" as security_pkg {
+  class "SecurityFilterChain" as security
+  class "LoginRateLimitFilter" as rate_limit
+  class "TokenAuthFilter" as token_filter
+  class "CorsConfig" as cors
+  class "SecurityBeans" as sec_beans
+  class "OpenApiConfig" as swagger
+  class "ServerConstants" as constants
+}
+
+package "API Layer (Controllers)" as api_pkg {
+  class "AuthController" as auth_ctrl
+  class "UserController" as user_ctrl
+  class "PostController" as post_ctrl
+  class "VideoController" as video_ctrl
+  class "CommentController" as comment_ctrl
+  class "GlobalExceptionHandler" as error_handler
+}
+
+package "Service Layer (Business Logic)" as service_pkg {
+  class "AuthService" as auth_svc
+  class "UserService" as user_svc
+  class "PostService" as post_svc
+  class "CommentService" as comment_svc <<Caching>>
+  class "LikeService" as like_svc
+  class "FileService" as file_svc
+  class "ThumbnailService" as thumb_svc <<Caching>>
+  class "EmailService" as email_svc
+  class "DbUserDetailsService" as user_details_svc
+}
+
+package "Utilities & Mappers" as util_pkg {
+  class "PostMapper" as post_mapper
+  class "UserMapper" as user_mapper
+  class "CommentMapper" as comment_mapper
+  class "Utils" as utils
+}
+
+package "Models & DTOs" as model_pkg {
+  class "User" as user_m
+  class "Post" as post_m
+  class "Comment" as comment_m
+  class "PostLike" as like_m
+  class "AuthToken" as auth_m
+}
+
+package "Data Access Layer (Repositories)" as repo_pkg {
+  interface "AuthTokenRepository" as auth_repo
+  interface "UserRepository" as user_repo
+  interface "PostRepository" as post_repo
+  interface "CommentRepository" as comment_repo
+  interface "LikeRepository" as like_repo
+}
+
+package "External Infrastructure" as infra_pkg {
+  database PostgreSQL
+  node SMTP_Server
+  folder Videos
+  folder Thumbnails
+}
+
+' --- Relationships ---
+
+client --> security : HTTP REST
+security --> rate_limit
+rate_limit --> token_filter
+token_filter --> cors
+
+token_filter --> user_details_svc
+user_details_svc --> user_repo
+token_filter -down-> auth_ctrl
+token_filter -down-> user_ctrl
+token_filter -down-> post_ctrl
+token_filter -down-> video_ctrl
+token_filter -down-> comment_ctrl
+
+auth_ctrl --> auth_svc
+user_ctrl --> user_svc
+post_ctrl --> post_svc
+video_ctrl --> file_svc
+comment_ctrl --> comment_svc
+
+auth_svc --> auth_repo
+user_svc --> user_repo
+post_svc --> post_repo
+comment_svc --> comment_repo
+
+user_m --> user_mapper
+post_m --> post_mapper
+comment_m --> comment_mapper
+
+user_m --> user_svc
+post_m --> post_svc
+comment_m --> comment_svc
+like_m --> like_svc
+auth_m --> auth_svc
+
+post_ctrl --> like_svc
+like_svc --> like_repo
+like_repo --> PostgreSQL
+
+video_ctrl --> thumb_svc
+file_svc --> Videos
+file_svc --> Thumbnails
+
+post_repo --> Videos
+thumb_svc --> Thumbnails
+auth_repo --> PostgreSQL
+user_repo --> PostgreSQL
+post_repo --> PostgreSQL
+comment_repo --> PostgreSQL
+email_svc --> SMTP_Server
+
+post_svc --> file_svc
+auth_ctrl --> email_svc
+
+@enduml
