@@ -25,7 +25,7 @@ public class PostService {
     private final UserRepository userRepository;
     private final LikeRepository likeRepository;
     private final FileService fileService;
-    private final ThumbnailService thumbnailService;
+    private final VideoTranscodingService transcodingService;
 
     private final PostMapper postMapper;
 
@@ -54,6 +54,8 @@ public class PostService {
 
             thumbName = fileService.saveFile(thumbFile, ServerConstants.thumbDir);
             postDTO.setThumbnailPath(thumbName);
+
+            transcodingService.transcodeInPlaceAsync(ServerConstants.videoDir + "/" + videoName);
 
             Post post = postMapper.toEntity(postDTO);
             Optional<User> current = userRepository.findById(postDTO.getUser_id());
