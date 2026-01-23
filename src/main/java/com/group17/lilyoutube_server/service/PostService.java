@@ -29,6 +29,11 @@ public class PostService {
 
     private final PostMapper postMapper;
 
+    private final org.springframework.data.redis.core.StringRedisTemplate redisTemplate;
+
+    @org.springframework.beans.factory.annotation.Value("${app.replica-name}")
+    private String replicaName;
+
     public List<PostDTO> getAllPosts() {
         return postRepository.findAllByOrderByCreatedAtDesc().stream()
                 .map(postMapper::toDto)
@@ -101,7 +106,11 @@ public class PostService {
     }
 
     public void incrementViews(Long id) {
-        postRepository.incrementViewsCount(id);
+        // Increment view count in Redis for this replica
+        // Key format: video_views:{videoId}
+        // Hash field: {replicaName}
+        String key = "video_views:" + id;
+        redisTemplate.opsForHash().increment(key, replicaName, 1);
     }
 
     public boolean isLikedByUser(Long postId, String userEmail) {
