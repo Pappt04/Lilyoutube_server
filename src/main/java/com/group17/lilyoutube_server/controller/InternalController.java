@@ -4,10 +4,7 @@ import com.group17.lilyoutube_server.dto.ViewSyncDTO;
 import com.group17.lilyoutube_server.service.ViewSyncService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/internal/views")
@@ -22,7 +19,7 @@ public class InternalController {
         return ResponseEntity.ok().build();
     }
 
-    @org.springframework.web.bind.annotation.GetMapping("/state")
+    @GetMapping("/state")
     public ResponseEntity<ViewSyncDTO> getLocalState() {
         return ResponseEntity.ok(viewSyncService.getLocalState());
     }
