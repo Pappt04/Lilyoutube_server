@@ -53,6 +53,12 @@ services:
         condition: service_healthy
       redis1:
         condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:8080/actuator/health", "|", "grep", "UP"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 20s
 
   app2:
     build: .
@@ -79,6 +85,12 @@ services:
         condition: service_healthy
       redis2:
         condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:8081/actuator/health", "|", "grep", "UP"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 20s
 
   redis1:
     image: redis:7

@@ -68,10 +68,12 @@ public class SecurityConfig {
                                                                 "/swagger-ui/**",
                                                                 "/swagger-ui.html",
                                                                 "/api/internal/**",
+                                                                "/actuator/health",
                                                                 "/error")
                                                 .permitAll()
                                                 .requestMatchers(HttpMethod.GET, "/api/users", "/api/users/**",
-                                                                "/api/posts", "/api/posts/**", "/api/media/**", "/api/comments",  "/api/comments/**")
+                                                                "/api/posts", "/api/posts/**", "/api/media/**",
+                                                                "/api/comments", "/api/comments/**")
                                                 .permitAll()
                                                 .anyRequest().authenticated());
 
