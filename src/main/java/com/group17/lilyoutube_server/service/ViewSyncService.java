@@ -52,6 +52,35 @@ public class ViewSyncService {
         }
     }
 
+    @Scheduled(fixedRateString = "${app.sync.db-rate-ms:30000}")
+    public void syncToDatabase() {
+        log.info("Starting view count sync to database...");
+        Set<String> keys = redisTemplate.keys("video_views:*");
+        if (keys == null || keys.isEmpty()) {
+            return;
+        }
+
+        for (String key : keys) {
+            try {
+                Long videoId = Long.parseLong(key.split(":")[1]);
+                Map<Object, Object> replicaViews = redisTemplate.opsForHash().entries(key);
+
+                long totalViews = 0;
+                for (Object v : replicaViews.values()) {
+                    totalViews += Long.parseLong(v.toString());
+                }
+
+                if (totalViews > 0) {
+                    postRepository.updateViewsCount(videoId, totalViews);
+                    log.debug("Synced video {} views to database: {}", videoId, totalViews);
+                }
+            } catch (Exception e) {
+                log.error("Failed to sync views to DB for key: {}. Error: {}", key, e.getMessage());
+            }
+        }
+        log.info("Finished view count sync to database.");
+    }
+
     public ViewSyncDTO getLocalState() {
         Map<Long, Long> localViews = new HashMap<>();
         Set<String> keys = redisTemplate.keys("video_views:*");
@@ -67,7 +96,6 @@ public class ViewSyncService {
         }
         return new ViewSyncDTO(localViews, replicaName);
     }
-
 
     public void receiveSync(ViewSyncDTO syncData) {
         String otherReplica = syncData.getReplicaName();
