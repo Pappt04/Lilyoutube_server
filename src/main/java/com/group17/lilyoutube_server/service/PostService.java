@@ -72,7 +72,6 @@ public class PostService {
             return postMapper.toDto(savedPost);
 
         } catch (Exception e) {
-            // Cleanup files if any were uploaded
             if (videoName != null) {
                 fileService.deleteFile(ServerConstants.videoDir + "/" + videoName);
             }
