@@ -78,6 +78,7 @@ public class VideoTranscodingService {
     }
 
     public boolean transcodeInPlace(String filePath) {
+        log.info("Starting in-place transcoding: {}", filePath);
         File originalFile = new File(filePath);
         if (!originalFile.exists()) {
             log.error("File not found for transcoding: {}", filePath);
