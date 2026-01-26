@@ -1,0 +1,30 @@
+syntax = "proto3";
+
+package com.group17.benchmarker.proto;
+
+option java_multiple_files = true;
+option java_package = "com.group17.benchmarker.proto";
+option java_outer_classname = "UploadEventProto";
+
+message UploadEvent {
+  int64 id = 1;
+  string thumbnailPath = 2;
+  string videoPath = 3;
+  string location = 4;
+  string title = 5;
+  string description = 6;
+  repeated string tags = 7;
+  string createdAt = 8;
+  int64 likesCount = 9;
+  int64 commentsCount = 10;
+  int64 viewsCount = 11;
+
+  int64 userId = 12;
+  string username = 13;
+  string email = 14;
+  string firstName = 15;
+  string lastName = 16;
+  string address = 17;
+  bool enabled = 18;
+  string activationToken = 19;
+}
