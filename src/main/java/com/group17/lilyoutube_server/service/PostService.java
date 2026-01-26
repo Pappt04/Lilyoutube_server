@@ -12,6 +12,11 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 import com.group17.lilyoutube_server.config.ServerConstants;
+import com.group17.lilyoutube_server.config.RabbitConfig;
+import com.group17.lilyoutube_server.dto.UploadEventDTO;
+import com.group17.lilyoutube_server.proto.UploadEvent;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -28,6 +33,8 @@ public class PostService {
     private final VideoTranscodingService transcodingService;
 
     private final PostMapper postMapper;
+    private final RabbitTemplate rabbitTemplate;
+    private final ObjectMapper objectMapper;
 
     private final org.springframework.data.redis.core.StringRedisTemplate redisTemplate;
 
@@ -68,8 +75,11 @@ public class PostService {
             post.setCreatedAt(LocalDateTime.now());
 
             Post savedPost = postRepository.save(post);
+            PostDTO savedDto = postMapper.toDto(savedPost);
 
-            return postMapper.toDto(savedPost);
+            sendUploadEvents(savedPost);
+
+            return savedDto;
 
         } catch (Exception e) {
             if (videoName != null) {
@@ -115,5 +125,72 @@ public class PostService {
             return false;
         }
         return likeRepository.existsByUserIdAndPostId(user.getId(), postId);
+    }
+
+    private void sendUploadEvents(Post post) {
+        try {
+            User user = post.getUser();
+            UploadEventDTO jsonEvent = UploadEventDTO.builder()
+                    .id(post.getId())
+                    .title(post.getTitle())
+                    .description(post.getDescription())
+                    .thumbnailPath(post.getThumbnailPath())
+                    .videoPath(post.getVideoPath())
+                    .location(post.getLocation())
+                    .tags(post.getTags())
+                    .createdAt(post.getCreatedAt().toString())
+                    .likesCount(0)
+                    .commentsCount(0)
+                    .viewsCount(0)
+                    .userId(user != null ? user.getId() : null)
+                    .username(user != null ? user.getUsername() : null)
+                    .email(user != null ? user.getEmail() : null)
+                    .firstName(user != null ? user.getFirstName() : null)
+                    .lastName(user != null ? user.getLastName() : null)
+                    .address(user != null ? user.getAddress() : null)
+                    .enabled(user != null && user.isEnabled())
+                    .activationToken(user != null ? user.getActivationToken() : null)
+                    .build();
+
+            // Send JSON
+            byte[] jsonBytes = objectMapper.writeValueAsBytes(jsonEvent);
+            rabbitTemplate.convertAndSend(RabbitConfig.EXCHANGE_NAME, RabbitConfig.ROUTING_KEY_JSON, jsonBytes);
+
+            // Send Protobuf
+            UploadEvent.Builder protoBuilder = UploadEvent.newBuilder()
+                    .setId(post.getId())
+                    .setTitle(post.getTitle() != null ? post.getTitle() : "")
+                    .setDescription(post.getDescription() != null ? post.getDescription() : "")
+                    .setThumbnailPath(post.getThumbnailPath() != null ? post.getThumbnailPath() : "")
+                    .setVideoPath(post.getVideoPath() != null ? post.getVideoPath() : "")
+                    .setLocation(post.getLocation() != null ? post.getLocation() : "")
+                    .setCreatedAt(post.getCreatedAt().toString());
+
+            if (post.getTags() != null) {
+                protoBuilder.addAllTags(post.getTags());
+            }
+
+            protoBuilder.setLikesCount(0)
+                    .setCommentsCount(0)
+                    .setViewsCount(0);
+
+            if (user != null) {
+                protoBuilder.setUserId(user.getId())
+                        .setUsername(user.getUsername() != null ? user.getUsername() : "")
+                        .setEmail(user.getEmail() != null ? user.getEmail() : "")
+                        .setFirstName(user.getFirstName() != null ? user.getFirstName() : "")
+                        .setLastName(user.getLastName() != null ? user.getLastName() : "")
+                        .setAddress(user.getAddress() != null ? user.getAddress() : "")
+                        .setEnabled(user.isEnabled())
+                        .setActivationToken(user.getActivationToken() != null ? user.getActivationToken() : "");
+            }
+
+            byte[] protoBytes = protoBuilder.build().toByteArray();
+            rabbitTemplate.convertAndSend(RabbitConfig.EXCHANGE_NAME, RabbitConfig.ROUTING_KEY_PROTO, protoBytes);
+
+        } catch (Exception e) {
+            // We don't want to fail the upload if RabbitMQ fails, but we should log it
+            e.printStackTrace();
+        }
     }
 }

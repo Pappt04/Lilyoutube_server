@@ -4,6 +4,9 @@ import org.springframework.amqp.core.Binding;
 import org.springframework.amqp.core.BindingBuilder;
 import org.springframework.amqp.core.Queue;
 import org.springframework.amqp.core.TopicExchange;
+import org.springframework.amqp.rabbit.connection.ConnectionFactory;
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
+import org.springframework.amqp.support.converter.Jackson2JsonMessageConverter;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -23,12 +26,12 @@ public class RabbitConfig {
 
     @Bean
     public Queue jsonQueue() {
-        return new Queue(QUEUE_JSON);
+        return new Queue(QUEUE_JSON, true);
     }
 
     @Bean
     public Queue protoQueue() {
-        return new Queue(QUEUE_PROTO);
+        return new Queue(QUEUE_PROTO, true);
     }
 
     @Bean
@@ -39,5 +42,11 @@ public class RabbitConfig {
     @Bean
     public Binding protoBinding(Queue protoQueue, TopicExchange exchange) {
         return BindingBuilder.bind(protoQueue).to(exchange).with(ROUTING_KEY_PROTO);
+    }
+
+    @Bean
+    public RabbitTemplate rabbitTemplate(ConnectionFactory connectionFactory) {
+        RabbitTemplate template = new RabbitTemplate(connectionFactory);
+        return template;
     }
 }

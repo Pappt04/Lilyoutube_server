@@ -3,19 +3,18 @@ package com.group17.benchmarker;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.group17.benchmarker.config.RabbitConfig;
 import com.group17.benchmarker.dto.UploadEventDto;
-import com.group17.benchmarker.proto.UploadEventProto;
+import com.group17.benchmarker.proto.UploadEvent;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.amqp.rabbit.core.RabbitTemplate;
-import org.springframework.boot.CommandLineRunner;
+import org.springframework.amqp.rabbit.annotation.EnableRabbit;
+import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration;
 import org.springframework.boot.autoconfigure.orm.jpa.HibernateJpaAutoConfiguration;
-import org.springframework.context.annotation.Bean;
-
-import java.util.Set;
+import org.springframework.messaging.handler.annotation.Payload;
 
 @SpringBootApplication(exclude = { DataSourceAutoConfiguration.class, HibernateJpaAutoConfiguration.class })
+@EnableRabbit
 @Slf4j
 public class BenchmarkerApplication {
 
@@ -23,125 +22,51 @@ public class BenchmarkerApplication {
         SpringApplication.run(BenchmarkerApplication.class, args);
     }
 
-    @Bean
-    public CommandLineRunner runBenchmark(ObjectMapper objectMapper, RabbitTemplate rabbitTemplate) {
-        return args -> {
-            int iterations = 1000;
-            int warmup = 100;
+    private final ObjectMapper objectMapper;
 
-            UploadEventDto jsonEvent = createSampleJsonEvent();
-            UploadEventProto.UploadEvent protoEvent = createSampleProtoEvent();
-
-            log.info("Starting Benchmark with {} iterations...", iterations);
-
-            // JSON Serialization
-            long totalJsonSerTime = 0;
-            byte[] jsonBytes = null;
-            for (int i = 0; i < iterations + warmup; i++) {
-                long start = System.nanoTime();
-                jsonBytes = objectMapper.writeValueAsBytes(jsonEvent);
-                long end = System.nanoTime();
-                if (i >= warmup)
-                    totalJsonSerTime += (end - start);
-            }
-            double avgJsonSerTime = totalJsonSerTime / (double) iterations / 1000.0;
-            int jsonSize = jsonBytes.length;
-
-            // Protobuf Serialization
-            long totalProtoSerTime = 0;
-            byte[] protoBytes = null;
-            for (int i = 0; i < iterations + warmup; i++) {
-                long start = System.nanoTime();
-                protoBytes = protoEvent.toByteArray();
-                long end = System.nanoTime();
-                if (i >= warmup)
-                    totalProtoSerTime += (end - start);
-            }
-            double avgProtoSerTime = totalProtoSerTime / (double) iterations / 1000.0;
-            int protoSize = protoBytes.length;
-
-            // JSON Deserialization
-            long totalJsonDesTime = 0;
-            for (int i = 0; i < iterations + warmup; i++) {
-                long start = System.nanoTime();
-                objectMapper.readValue(jsonBytes, UploadEventDto.class);
-                long end = System.nanoTime();
-                if (i >= warmup)
-                    totalJsonDesTime += (end - start);
-            }
-            double avgJsonDesTime = totalJsonDesTime / (double) iterations / 1000.0;
-
-            // Protobuf Deserialization
-            long totalProtoDesTime = 0;
-            for (int i = 0; i < iterations + warmup; i++) {
-                long start = System.nanoTime();
-                UploadEventProto.UploadEvent.parseFrom(protoBytes);
-                long end = System.nanoTime();
-                if (i >= warmup)
-                    totalProtoDesTime += (end - start);
-            }
-            double avgProtoDesTime = totalProtoDesTime / (double) iterations / 1000.0;
-
-            log.info("--- Benchmark Results ---");
-            log.info("JSON: Avg Ser: {} µs, Avg Des: {} µs, Size: {} bytes", avgJsonSerTime, avgJsonDesTime, jsonSize);
-            log.info("Proto: Avg Ser: {} µs, Avg Des: {} µs, Size: {} bytes", avgProtoSerTime, avgProtoDesTime,
-                    protoSize);
-            log.info("Ratio (JSON/Proto): Ser: {}, Des: {}, Size: {}",
-                    avgJsonSerTime / avgProtoSerTime, avgJsonDesTime / avgProtoDesTime, (double) jsonSize / protoSize);
-
-            log.info("Sending messages to RabbitMQ...");
-            rabbitTemplate.convertAndSend(RabbitConfig.EXCHANGE_NAME, RabbitConfig.ROUTING_KEY_JSON, jsonBytes);
-            log.info("Sent JSON message to RabbitMQ");
-            rabbitTemplate.convertAndSend(RabbitConfig.EXCHANGE_NAME, RabbitConfig.ROUTING_KEY_PROTO, protoBytes);
-            log.info("Sent Proto message to RabbitMQ");
-        };
+    public BenchmarkerApplication(ObjectMapper objectMapper) {
+        this.objectMapper = objectMapper;
     }
 
-    private UploadEventDto createSampleJsonEvent() {
-        return UploadEventDto.builder()
-                .id(1L)
-                .title("Test Video")
-                .description("This is a test video description with some length to it.")
-                .thumbnailPath("/media/thumbnails/test.jpg")
-                .videoPath("/media/videos/test.mp4")
-                .location("Novi Sad, Serbia")
-                .tags(Set.of("tag1", "tag2", "tag3", "java", "benchmark"))
-                .createdAt("2026-01-26T17:24:00")
-                .likesCount(100)
-                .commentsCount(50)
-                .viewsCount(5000)
-                .userId(10L)
-                .username("anonymous")
-                .email("anonymous@example.com")
-                .firstName("Anonymous")
-                .lastName("Somebody")
-                .address("Street 1, Novi Sad")
-                .enabled(true)
-                .activationToken("token123")
-                .build();
+    @RabbitListener(queues = RabbitConfig.QUEUE_JSON)
+    public void receiveJsonMessage(@Payload byte[] message) {
+        try {
+            long start = System.nanoTime();
+            UploadEventDto event = objectMapper.readValue(message, UploadEventDto.class);
+            long end = System.nanoTime();
+
+            double durationUs = (end - start) / 1000.0;
+            log.info("========================================");
+            log.info("--- JSON Benchmark ---");
+            log.info("Received JSON UploadEvent ID: {}", event.getId());
+            log.info("Title: {}", event.getTitle());
+            log.info("Username: {}", event.getUsername());
+            log.info("Deserialization time: {} µs", String.format("%.2f", durationUs));
+            log.info("Payload size: {} bytes", message.length);
+            log.info("========================================");
+        } catch (Exception e) {
+            log.error("Failed to process JSON message", e);
+        }
     }
 
-    private UploadEventProto.UploadEvent createSampleProtoEvent() {
-        return UploadEventProto.UploadEvent.newBuilder()
-                .setId(1L)
-                .setTitle("Test Video")
-                .setDescription("This is a test video description with some length to it.")
-                .setThumbnailPath("/media/thumbnails/test.jpg")
-                .setVideoPath("/media/videos/test.mp4")
-                .setLocation("Novi Sad, Serbia")
-                .addAllTags(Set.of("tag1", "tag2", "tag3", "java", "benchmark"))
-                .setCreatedAt("2026-01-26T17:24:00")
-                .setLikesCount(100)
-                .setCommentsCount(50)
-                .setViewsCount(5000)
-                .setUserId(10L)
-                .setUsername("anonymous")
-                .setEmail("anonymous@example.com")
-                .setFirstName("Anonymous")
-                .setLastName("Somebody")
-                .setAddress("Street 1, Novi Sad")
-                .setEnabled(true)
-                .setActivationToken("token123")
-                .build();
+    @RabbitListener(queues = RabbitConfig.QUEUE_PROTO)
+    public void receiveProtoMessage(@Payload byte[] message) {
+        try {
+            long start = System.nanoTime();
+            UploadEvent event = UploadEvent.parseFrom(message);
+            long end = System.nanoTime();
+
+            double durationUs = (end - start) / 1000.0;
+            log.info("========================================");
+            log.info("--- Protobuf Benchmark ---");
+            log.info("Received Protobuf UploadEvent ID: {}", event.getId());
+            log.info("Title: {}", event.getTitle());
+            log.info("Username: {}", event.getUsername());
+            log.info("Deserialization time: {} µs", String.format("%.2f", durationUs));
+            log.info("Payload size: {} bytes", message.length);
+            log.info("========================================");
+        } catch (Exception e) {
+            log.error("Failed to process Protobuf message", e);
+        }
     }
 }
