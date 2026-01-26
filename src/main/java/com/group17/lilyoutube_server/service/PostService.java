@@ -29,6 +29,11 @@ public class PostService {
 
     private final PostMapper postMapper;
 
+    private final org.springframework.data.redis.core.StringRedisTemplate redisTemplate;
+
+    @org.springframework.beans.factory.annotation.Value("${app.replica-name}")
+    private String replicaName;
+
     public List<PostDTO> getAllPosts() {
         return postRepository.findAllByOrderByCreatedAtDesc().stream()
                 .map(postMapper::toDto)
@@ -67,7 +72,6 @@ public class PostService {
             return postMapper.toDto(savedPost);
 
         } catch (Exception e) {
-            // Cleanup files if any were uploaded
             if (videoName != null) {
                 fileService.deleteFile(ServerConstants.videoDir + "/" + videoName);
             }
@@ -101,7 +105,8 @@ public class PostService {
     }
 
     public void incrementViews(Long id) {
-        postRepository.incrementViewsCount(id);
+        String key = "video_views:" + id;
+        redisTemplate.opsForHash().increment(key, replicaName, 1);
     }
 
     public boolean isLikedByUser(Long postId, String userEmail) {
