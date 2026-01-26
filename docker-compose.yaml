@@ -151,6 +151,11 @@ services:
     depends_on:
       rabbitmq:
         condition: service_healthy
+    healthcheck:
+      test: [ "CMD", "wget", "-qO-", "http://localhost:8083/actuator/health", "|", "grep", "UP" ]
+      interval: 10s
+      timeout: 5s
+      retries: 3
 volumes:
   pgdata_shared:
   media_shared:

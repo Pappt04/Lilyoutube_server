@@ -14,8 +14,8 @@ import org.springframework.context.annotation.Configuration;
 public class RabbitConfig {
 
     public static final String EXCHANGE_NAME = "upload-exchange";
-    public static final String QUEUE_JSON = "upload-queue-json";
-    public static final String QUEUE_PROTO = "upload-queue-proto";
+    public static final String QUEUE_JSON = "benchmarker-queue-json";
+    public static final String QUEUE_PROTO = "benchmarker-queue-proto";
     public static final String ROUTING_KEY_JSON = "upload.json";
     public static final String ROUTING_KEY_PROTO = "upload.proto";
 
