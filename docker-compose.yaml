@@ -1,5 +1,4 @@
 version: '3.8'
-
 services:
   gateway:
     image: nginx:latest
@@ -10,7 +9,6 @@ services:
     depends_on:
       - app1
       - app2
-
   # Shared database for users, videos (posts), comments, etc.
   db_shared:
     image: postgres:15
@@ -27,7 +25,6 @@ services:
       interval: 5s
       timeout: 5s
       retries: 5
-
   app1:
     build: .
     environment:
@@ -42,6 +39,10 @@ services:
       MY_APP_PASSWORD: ${MY_APP_PASSWORD:-password}
       SPRING_DATA_REDIS_HOST: redis1
       SPRING_DATA_REDIS_PORT: 6379
+      SPRING_RABBITMQ_HOST: rabbitmq
+      SPRING_RABBITMQ_PORT: 5672
+      SPRING_RABBITMQ_USERNAME: guest
+      SPRING_RABBITMQ_PASSWORD: guest
       REPLICA_NAME: app1
       PEER_URLS: http://app2:8081
     ports:
@@ -53,13 +54,14 @@ services:
         condition: service_healthy
       redis1:
         condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
     healthcheck:
-      test: ["CMD", "wget", "-qO-", "http://localhost:8080/actuator/health", "|", "grep", "UP"]
+      test: [ "CMD", "wget", "-qO-", "http://localhost:8080/actuator/health", "|", "grep", "UP" ]
       interval: 10s
       timeout: 5s
       retries: 3
       start_period: 20s
-
   app2:
     build: .
     environment:
@@ -74,6 +76,10 @@ services:
       MY_APP_PASSWORD: ${MY_APP_PASSWORD:-password}
       SPRING_DATA_REDIS_HOST: redis2
       SPRING_DATA_REDIS_PORT: 6379
+      SPRING_RABBITMQ_HOST: rabbitmq
+      SPRING_RABBITMQ_PORT: 5672
+      SPRING_RABBITMQ_USERNAME: guest
+      SPRING_RABBITMQ_PASSWORD: guest
       REPLICA_NAME: app2
       PEER_URLS: http://app1:8080
     ports:
@@ -85,13 +91,14 @@ services:
         condition: service_healthy
       redis2:
         condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
     healthcheck:
-      test: ["CMD", "wget", "-qO-", "http://localhost:8081/actuator/health", "|", "grep", "UP"]
+      test: [ "CMD", "wget", "-qO-", "http://localhost:8081/actuator/health", "|", "grep", "UP" ]
       interval: 10s
       timeout: 5s
       retries: 3
       start_period: 20s
-
   redis1:
     image: redis:7
     command: [ "redis-server", "--appendonly", "yes" ]
@@ -104,7 +111,6 @@ services:
       interval: 5s
       timeout: 3s
       retries: 5
-
   redis2:
     image: redis:7
     command: [ "redis-server", "--appendonly", "yes" ]
@@ -117,7 +123,39 @@ services:
       interval: 5s
       timeout: 3s
       retries: 5
-
+  rabbitmq:
+    image: rabbitmq:3-management
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    environment:
+      RABBITMQ_DEFAULT_USER: guest
+      RABBITMQ_DEFAULT_PASS: guest
+    healthcheck:
+      test: [ "CMD", "rabbitmq-diagnostics", "check_port_connectivity" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+  benchmarker:
+    build:
+      context: ./scripts/benchmarker
+      dockerfile: Dockerfile
+    restart: always
+    ports:
+      - "8083:8083"
+    environment:
+      SPRING_RABBITMQ_HOST: rabbitmq
+      SPRING_RABBITMQ_PORT: 5672
+      SPRING_RABBITMQ_USERNAME: guest
+      SPRING_RABBITMQ_PASSWORD: guest
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+    healthcheck:
+      test: [ "CMD", "wget", "-qO-", "http://localhost:8083/actuator/health", "|", "grep", "UP" ]
+      interval: 10s
+      timeout: 5s
+      retries: 3
 volumes:
   pgdata_shared:
   media_shared:
