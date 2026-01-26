@@ -135,6 +135,16 @@ services:
       timeout: 5s
       retries: 5
 
+  benchmarker:
+    build:
+      context: ./scripts/benchmarker
+      dockerfile: Dockerfile
+    environment:
+      SPRING_RABBITMQ_HOST: rabbitmq
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+
 volumes:
   pgdata_shared:
   media_shared:
