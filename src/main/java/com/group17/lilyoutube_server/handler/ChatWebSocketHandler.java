@@ -2,6 +2,7 @@ package com.group17.lilyoutube_server.handler;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.stereotype.Component;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.web.socket.CloseStatus;
 import org.springframework.web.socket.TextMessage;
 import org.springframework.web.socket.WebSocketSession;
@@ -75,6 +76,29 @@ public class ChatWebSocketHandler extends TextWebSocketHandler {
                     videoSessions.remove(videoName);
                 }
             }
+        }
+    }
+
+    @Scheduled(fixedRate = 30000)
+    public void sendHeartbeat() {
+        try {
+            String heartbeatMessage = objectMapper.writeValueAsString(Map.of("type", "heartbeat"));
+            TextMessage message = new TextMessage(heartbeatMessage);
+
+            for (Set<WebSocketSession> sessions : videoSessions.values()) {
+                for (WebSocketSession session : sessions) {
+                    if (session.isOpen()) {
+                        try {
+                            session.sendMessage(message);
+                        } catch (IOException e) {
+                            System.err.println(
+                                    "Failed to send heartbeat to session " + session.getId() + ": " + e.getMessage());
+                        }
+                    }
+                }
+            }
+        } catch (Exception e) {
+            System.err.println("Error creating heartbeat message: " + e.getMessage());
         }
     }
 
