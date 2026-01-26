@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.group17.benchmarker.config.RabbitConfig;
 import com.group17.benchmarker.dto.UploadEventDto;
 import com.group17.benchmarker.proto.UploadEvent;
+import com.group17.benchmarker.service.BenchmarkService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.rabbit.annotation.EnableRabbit;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
@@ -23,9 +24,12 @@ public class BenchmarkerApplication {
     }
 
     private final ObjectMapper objectMapper;
+    private final BenchmarkService benchmarkService;
 
-    public BenchmarkerApplication(ObjectMapper objectMapper) {
+    public BenchmarkerApplication(ObjectMapper objectMapper,
+            com.group17.benchmarker.service.BenchmarkService benchmarkService) {
         this.objectMapper = objectMapper;
+        this.benchmarkService = benchmarkService;
     }
 
     @RabbitListener(queues = RabbitConfig.QUEUE_JSON)
@@ -36,6 +40,15 @@ public class BenchmarkerApplication {
             long end = System.nanoTime();
 
             double durationUs = (end - start) / 1000.0;
+
+            benchmarkService.addResult(com.group17.benchmarker.model.BenchmarkResult.builder()
+                    .type("JSON")
+                    .id(event.getId().toString())
+                    .deserializationTimeUs(durationUs)
+                    .payloadSize(message.length)
+                    .timestamp(System.currentTimeMillis())
+                    .build());
+
             log.info("========================================");
             log.info("--- JSON Benchmark ---");
             log.info("Received JSON UploadEvent ID: {}", event.getId());
@@ -57,6 +70,15 @@ public class BenchmarkerApplication {
             long end = System.nanoTime();
 
             double durationUs = (end - start) / 1000.0;
+
+            benchmarkService.addResult(com.group17.benchmarker.model.BenchmarkResult.builder()
+                    .type("PROTO")
+                    .id(String.valueOf(event.getId()))
+                    .deserializationTimeUs(durationUs)
+                    .payloadSize(message.length)
+                    .timestamp(System.currentTimeMillis())
+                    .build());
+
             log.info("========================================");
             log.info("--- Protobuf Benchmark ---");
             log.info("Received Protobuf UploadEvent ID: {}", event.getId());

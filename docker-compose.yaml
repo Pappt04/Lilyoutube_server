@@ -141,6 +141,8 @@ services:
       context: ./scripts/benchmarker
       dockerfile: Dockerfile
     restart: always
+    ports:
+      - "8083:8083"
     environment:
       SPRING_RABBITMQ_HOST: rabbitmq
       SPRING_RABBITMQ_PORT: 5672
