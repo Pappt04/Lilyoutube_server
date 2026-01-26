@@ -105,9 +105,6 @@ public class PostService {
     }
 
     public void incrementViews(Long id) {
-        // Increment view count in Redis for this replica
-        // Key format: video_views:{videoId}
-        // Hash field: {replicaName}
         String key = "video_views:" + id;
         redisTemplate.opsForHash().increment(key, replicaName, 1);
     }
