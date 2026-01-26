@@ -11,7 +11,7 @@ import java.util.Set;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class UploadEvent {
+public class UploadEventDto {
     private Long id;
     private String thumbnailPath;
     private String videoPath;

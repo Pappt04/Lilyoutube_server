@@ -1,8 +1,5 @@
 syntax = "proto3";
 
-package com.group17.benchmarker.proto;
-
-option java_multiple_files = true;
 option java_package = "com.group17.benchmarker.proto";
 option java_outer_classname = "UploadEventProto";
 
@@ -18,7 +15,6 @@ message UploadEvent {
   int64 likesCount = 9;
   int64 commentsCount = 10;
   int64 viewsCount = 11;
-
   int64 userId = 12;
   string username = 13;
   string email = 14;

@@ -3,7 +3,6 @@ package com.group17.lilyoutube_server.listener;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.group17.lilyoutube_server.config.RabbitConfig;
 import com.group17.lilyoutube_server.dto.UploadEvent;
-import com.group17.lilyoutube_server.proto.UploadEventProto;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
@@ -30,8 +29,7 @@ public class UploadEventListener {
     @RabbitListener(queues = RabbitConfig.QUEUE_PROTO)
     public void receiveProtoMessage(byte[] message) {
         try {
-            com.group17.lilyoutube_server.proto.UploadEvent event = com.group17.lilyoutube_server.proto.UploadEvent
-                    .parseFrom(message);
+            UploadEvent event = UploadEvent.parseFrom(message);
             log.info("Received Protobuf UploadEvent: id={}, title={}, user={}",
                     event.getId(), event.getTitle(), event.getUsername());
         } catch (Exception e) {
