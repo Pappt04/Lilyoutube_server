@@ -82,44 +82,48 @@ public class ViewSyncService {
     }
 
     public ViewSyncDTO getLocalState() {
-        Map<Long, Long> localViews = new HashMap<>();
+        Map<Long, Map<String, Long>> state = new HashMap<>();
         Set<String> keys = redisTemplate.keys("video_views:*");
 
         if (keys != null) {
             for (String key : keys) {
-                Object val = redisTemplate.opsForHash().get(key, replicaName);
-                if (val != null) {
-                    Long videoId = Long.parseLong(key.split(":")[1]);
-                    localViews.put(videoId, Long.parseLong(val.toString()));
+                Long videoId = Long.parseLong(key.split(":")[1]);
+                Map<Object, Object> entries = redisTemplate.opsForHash().entries(key);
+
+                Map<String, Long> replicaMap = new HashMap<>();
+                for (Map.Entry<Object, Object> entry : entries.entrySet()) {
+                    replicaMap.put(entry.getKey().toString(), Long.parseLong(entry.getValue().toString()));
                 }
+                state.put(videoId, replicaMap);
             }
         }
-        return new ViewSyncDTO(localViews, replicaName);
+        return new ViewSyncDTO(state, replicaName);
     }
 
     public void receiveSync(ViewSyncDTO syncData) {
-        String remoteReplica = syncData.getReplicaName();
-        Map<Long, Long> remoteViews = syncData.getVideoViews();
+        Map<Long, Map<String, Long>> remoteState = syncData.getVideoViews();
+        if (remoteState == null)
+            return;
 
-        if (remoteViews != null && remoteReplica != null) {
-            for (Map.Entry<Long, Long> entry : remoteViews.entrySet()) {
-                Long vId = entry.getKey();
-                Long remoteCount = entry.getValue();
-                if (vId != null && remoteCount != null) {
-                    String key = "video_views:" + vId;
+        for (Map.Entry<Long, Map<String, Long>> videoEntry : remoteState.entrySet()) {
+            Long videoId = videoEntry.getKey();
+            Map<String, Long> remoteReplicaCounts = videoEntry.getValue();
+            String key = "video_views:" + videoId;
 
-                    // Get existing local knowledge of the remote replica's count
-                    Object localStoredObj = redisTemplate.opsForHash().get(key, remoteReplica);
-                    long localStoredCount = (localStoredObj != null) ? Long.parseLong(localStoredObj.toString()) : 0L;
+            for (Map.Entry<String, Long> replicaEntry : remoteReplicaCounts.entrySet()) {
+                String rName = replicaEntry.getKey();
+                Long rCount = replicaEntry.getValue();
 
-                    // G-Counter merge property: take the maximum
-                    if (remoteCount > localStoredCount) {
-                        redisTemplate.opsForHash().put(key, remoteReplica, remoteCount.toString());
-                    }
+                // Get local value for this specific replica
+                Object localValObj = redisTemplate.opsForHash().get(key, rName);
+                long localCount = (localValObj != null) ? Long.parseLong(localValObj.toString()) : 0L;
+
+                if (rCount > localCount) {
+                    redisTemplate.opsForHash().put(key, rName, rCount.toString());
                 }
             }
-            log.info("Received and merged view counts from replica: {}", remoteReplica);
         }
+        log.info("Received and merged view count state from replica: {}", syncData.getSourceReplicaName());
     }
 
     public List<VideoViewReplicaDTO> getReplicaViewsTable() {

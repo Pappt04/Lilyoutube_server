@@ -43,12 +43,29 @@ public class PostService {
 
     public List<PostDTO> getAllPosts() {
         return postRepository.findAllByOrderByCreatedAtDesc().stream()
-                .map(postMapper::toDto)
+                .map(post -> {
+                    PostDTO dto = postMapper.toDto(post);
+                    dto.setViewsCount(getMergedViewCountFromRedis(post.getId()));
+                    return dto;
+                })
                 .collect(Collectors.toList());
     }
 
     public PostDTO getPostById(Long id) {
-        return postMapper.toDto(postRepository.findById(id).orElse(null));
+        Post post = postRepository.findById(id).orElse(null);
+        if (post == null)
+            return null;
+        PostDTO dto = postMapper.toDto(post);
+        dto.setViewsCount(getMergedViewCountFromRedis(id));
+        return dto;
+    }
+
+    private Long getMergedViewCountFromRedis(Long videoId) {
+        String key = "video_views:" + videoId;
+        java.util.Map<Object, Object> entries = redisTemplate.opsForHash().entries(key);
+        return entries.values().stream()
+                .mapToLong(v -> Long.parseLong(v.toString()))
+                .sum();
     }
 
     public PostDTO getPostByVideoName(String videoName) {
