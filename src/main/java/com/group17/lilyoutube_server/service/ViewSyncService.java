@@ -98,20 +98,27 @@ public class ViewSyncService {
     }
 
     public void receiveSync(ViewSyncDTO syncData) {
-        String otherReplica = syncData.getReplicaName();
-        Map<Long, Long> views = syncData.getVideoViews();
+        String remoteReplica = syncData.getReplicaName();
+        Map<Long, Long> remoteViews = syncData.getVideoViews();
 
-        if (views != null && otherReplica != null) {
-            for (Map.Entry<Long, Long> entry : views.entrySet()) {
+        if (remoteViews != null && remoteReplica != null) {
+            for (Map.Entry<Long, Long> entry : remoteViews.entrySet()) {
                 Long vId = entry.getKey();
-                Long vCount = entry.getValue();
-                if (vId != null && vCount != null) {
+                Long remoteCount = entry.getValue();
+                if (vId != null && remoteCount != null) {
                     String key = "video_views:" + vId;
-                    String val = vCount.toString();
-                    redisTemplate.opsForHash().put(key, otherReplica, val);
+
+                    // Get existing local knowledge of the remote replica's count
+                    Object localStoredObj = redisTemplate.opsForHash().get(key, remoteReplica);
+                    long localStoredCount = (localStoredObj != null) ? Long.parseLong(localStoredObj.toString()) : 0L;
+
+                    // G-Counter merge property: take the maximum
+                    if (remoteCount > localStoredCount) {
+                        redisTemplate.opsForHash().put(key, remoteReplica, remoteCount.toString());
+                    }
                 }
             }
-            log.info("Received and updated view counts from replica: {}", otherReplica);
+            log.info("Received and merged view counts from replica: {}", remoteReplica);
         }
     }
 
