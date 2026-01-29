@@ -7,7 +7,7 @@ import sys
 # Configuration
 BASE_URL = "http://localhost:8080/api/posts"
 POST_ID = "6aaa6bac-4d38-4d36-a818-a88c3d16fb4c"
-BEARER_TOKEN = "993af60a-964b-4b25-9a51-a3425ed5391a"
+BEARER_TOKEN = "1db0abb2-77dc-4171-acbc-7222954d6b4a"
 NUM_REQUESTS = 100
 
 # API endpoints

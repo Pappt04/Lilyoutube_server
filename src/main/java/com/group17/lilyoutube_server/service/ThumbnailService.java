@@ -31,11 +31,20 @@ public class ThumbnailService {
     public CachedThumbnail getThumbnail(String name) {
         return thumbnailCache.get(name, k -> {
             try {
-                Path filePath = Paths.get(ServerConstants.thumbDir).resolve(k).normalize();
-                if (!Files.exists(filePath)) {
-                    log.error("Thumbnail not found: {}", filePath);
+                Path compressedPath = Paths.get(ServerConstants.compressedThumbDir).resolve(k).normalize();
+                Path originalPath = Paths.get(ServerConstants.thumbDir).resolve(k).normalize();
+
+                Path filePath;
+                if (Files.exists(compressedPath)) {
+                    filePath = compressedPath;
+                    log.info("Using compressed thumbnail for: {}", k);
+                } else if (Files.exists(originalPath)) {
+                    filePath = originalPath;
+                } else {
+                    log.error("Thumbnail not found: {} (checked both compressed and original)", k);
                     return null;
                 }
+
                 byte[] content = Files.readAllBytes(filePath);
                 String contentType = Files.probeContentType(filePath);
                 if (contentType == null) {

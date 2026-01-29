@@ -5,6 +5,8 @@ import com.group17.lilyoutube_server.dto.UserDTO;
 import com.group17.lilyoutube_server.service.LikeService;
 import com.group17.lilyoutube_server.service.PostService;
 import com.group17.lilyoutube_server.service.UserService;
+import com.group17.lilyoutube_server.service.ViewSyncService;
+import com.group17.lilyoutube_server.dto.VideoViewReplicaDTO;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -22,6 +24,7 @@ public class PostController {
     private final PostService postService;
     private final UserService userService;
     private final LikeService likeService;
+    private final ViewSyncService viewSyncService;
 
     @GetMapping
     public ResponseEntity<List<PostDTO>> getAllVideos() {
@@ -97,5 +100,10 @@ public class PostController {
             return ResponseEntity.ok(false);
         }
         return ResponseEntity.ok(postService.isLikedByUser(id, principal.getName()));
+    }
+
+    @GetMapping("/views/replica-table")
+    public ResponseEntity<List<VideoViewReplicaDTO>> getReplicaViewsTable() {
+        return ResponseEntity.ok(viewSyncService.getReplicaViewsTable());
     }
 }

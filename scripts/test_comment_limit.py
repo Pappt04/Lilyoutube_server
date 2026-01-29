@@ -6,7 +6,7 @@ def test_comment_limit():
     BASE_URL = "http://localhost:8080"
     POST_ID = 2
     USER_ID = 2
-    TOKEN = "64fe6cd2-ba79-403c-973b-4989885ed0a9"
+    TOKEN = "1db0abb2-77dc-4171-acbc-7222954d6b4a"
     TEXT_PREFIX = "positive comment"
     
     headers = {
