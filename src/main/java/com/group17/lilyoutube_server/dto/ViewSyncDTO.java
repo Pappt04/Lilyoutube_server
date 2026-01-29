@@ -10,6 +10,7 @@ import java.util.Map;
 @NoArgsConstructor
 @AllArgsConstructor
 public class ViewSyncDTO {
-    private Map<Long, Long> videoViews; // videoId -> count
-    private String replicaName;
+    // videoId -> (replicaName -> counterValue)
+    private Map<Long, Map<String, Long>> videoViews;
+    private String sourceReplicaName;
 }
