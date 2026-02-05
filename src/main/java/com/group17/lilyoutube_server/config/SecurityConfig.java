@@ -1,18 +1,17 @@
 package com.group17.lilyoutube_server.config;
 
 import com.group17.lilyoutube_server.service.DbUserDetailsService;
+import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.config.Customizer;
-import org.springframework.http.HttpMethod;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.cors.CorsConfiguration;
@@ -38,11 +37,12 @@ public class SecurityConfig {
         @Bean
         public CorsConfigurationSource corsConfigurationSource() {
                 CorsConfiguration configuration = new CorsConfiguration();
-                configuration.setAllowedOrigins(Arrays.asList("http://localhost:4200"));
-                configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
-                configuration.setAllowedHeaders(Arrays.asList("authorization", "content-type", "x-auth-token"));
-                configuration.setExposedHeaders(Arrays.asList("x-auth-token"));
+                configuration.setAllowedOriginPatterns(Arrays.asList("*"));
+                configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS", "HEAD"));
+                configuration.setAllowedHeaders(Arrays.asList("*"));
+                configuration.setExposedHeaders(Arrays.asList("*"));
                 configuration.setAllowCredentials(true);
+                configuration.setMaxAge(3600L);
                 UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
                 source.registerCorsConfiguration("/**", configuration);
                 return source;
@@ -53,10 +53,11 @@ public class SecurityConfig {
                         HttpSecurity http,
                         TokenAuthFilter tokenAuthFilter,
                         LoginRateLimitFilter loginRateLimitFilter,
-                        DaoAuthenticationProvider authProvider) throws Exception {
+                        DaoAuthenticationProvider authProvider,
+                        CorsConfigurationSource corsConfigurationSource) throws Exception {
 
                 http
-                                .cors(Customizer.withDefaults())
+                                .cors(cors -> cors.configurationSource(corsConfigurationSource))
                                 .csrf(AbstractHttpConfigurer::disable)
                                 .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                                 .authenticationProvider(authProvider)
@@ -76,7 +77,17 @@ public class SecurityConfig {
                                                                 "/api/posts", "/api/posts/**", "/api/media/**",
                                                                 "/api/comments", "/api/comments/**")
                                                 .permitAll()
-                                                .anyRequest().authenticated());
+                                                .anyRequest().authenticated())
+                                .exceptionHandling(exceptions -> exceptions
+                                                .authenticationEntryPoint((request, response, authException) -> {
+                                                        response.setHeader("Access-Control-Allow-Origin", "*");
+                                                        response.setHeader("Access-Control-Allow-Methods", "GET, POST, PUT, PATCH, DELETE, OPTIONS, HEAD");
+                                                        response.setHeader("Access-Control-Allow-Headers", "*");
+                                                        response.setHeader("Access-Control-Expose-Headers", "*");
+                                                        response.setHeader("Access-Control-Allow-Credentials", "true");
+                                                        response.setHeader("Access-Control-Max-Age", "3600");
+                                                        response.sendError(HttpServletResponse.SC_UNAUTHORIZED, authException.getMessage());
+                                                }));
 
                 http.addFilterBefore(loginRateLimitFilter, UsernamePasswordAuthenticationFilter.class);
 
