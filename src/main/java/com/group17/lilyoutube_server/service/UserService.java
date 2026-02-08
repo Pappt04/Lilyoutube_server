@@ -49,4 +49,9 @@ public class UserService implements UserDetailsService {
                 .map(userMapper::toDto)
                 .orElseThrow(() -> new IllegalArgumentException("User not found"));
     }
+
+    public User getUserEntityByEmail(String email) {
+        return userRepository.findByEmail(email)
+                .orElseThrow(() -> new IllegalArgumentException("User not found"));
+    }
 }
