@@ -47,7 +47,7 @@ public class ViewSyncService {
                     log.info("Successfully pulled views from peer: {}", peer);
                 }
             } catch (Exception e) {
-                log.error("Failed to pull views from peer: {}. Error: {}", peer, e.getMessage());
+                log.warn("Failed to pull views from peer: {}. Error: {}", peer, e.getMessage());
             }
         }
     }

@@ -2,22 +2,19 @@ import requests
 import json
 import time
 import os
-import uuid
 
 BASE_URL_1 = "http://localhost:8081"
 BASE_URL_2 = "http://localhost:8082"
 GATEWAY_URL = "http://localhost:8888"
 
-FALLBACK_TOKEN = "1db0abb2-77dc-4171-acbc-7222954d6b4a"
-
 def authenticate():
     print("[2] Authenticating...")
-    
+
     login_payload = {
-        "email": "mock@gmail.com",
-        "password": "password"
+        "email": "papi@gmail.com",
+        "password": "papipapi"
     }
-    
+
     try:
         resp = requests.post(f"{GATEWAY_URL}/api/auth/login", json=login_payload)
         if resp.status_code == 200:
@@ -25,34 +22,11 @@ def authenticate():
             print("    Login successful! Token acquired.")
             return token
         else:
-             print(f"    Login failed ({resp.status_code}). Attempting Register...")
+             print(f"    Login failed ({resp.status_code}): {resp.text}")
+             return None
     except Exception as e:
         print(f"    Login error: {e}")
         return None
-
-    unique_suffix = str(uuid.uuid4())[:8]
-    register_payload = {
-        "email": f"mock_{unique_suffix}@gmail.com",
-        "username": f"user_{unique_suffix}",
-        "password": "password",
-        "confirmPassword": "password",
-        "firstName": "Test",
-        "lastName": "User",
-        "address": "Test Address"
-    }
-
-    try:
-        print(f"    Registering as {register_payload['email']}...")
-        resp = requests.post(f"{GATEWAY_URL}/api/auth/register", json=register_payload)
-        if resp.status_code == 200:
-            print("    Registration initiated. Check likely email failure in logs.")
-        else:
-            print(f"    Registration failed: {resp.status_code} - {resp.text}")
-            
-    except Exception as e:
-        print(f"    Register error: {e}")
-
-    return None
 
 def demo_sync():
     print("==========================================")

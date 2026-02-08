@@ -6,20 +6,45 @@ import sys
 POST_ID = 1
 USER_ID = 1
 BASE_URL = "http://localhost:8080/api"
-TOKEN = "993af60a-964b-4b25-9a51-a3425ed5391a"
+
+def authenticate():
+    """Login with credentials and get token."""
+    login_payload = {
+        "email": "papi@gmail.com",
+        "password": "papipapi"
+    }
+
+    try:
+        resp = requests.post(f"http://localhost:8080/api/auth/login", json=login_payload)
+        if resp.status_code == 200:
+            token = resp.json().get("token")
+            print(f"Login successful! Token: {token}")
+            return token
+        else:
+            print(f"Login failed ({resp.status_code}): {resp.text}")
+            return None
+    except Exception as e:
+        print(f"Login error: {e}")
+        return None
 
 def test_rate_limit():
     print("Testing comment rate limiting...")
+
+    # Authenticate first
+    TOKEN = authenticate()
+    if not TOKEN:
+        print("ERROR: Failed to authenticate. Exiting.")
+        sys.exit(1)
+
     print(f"Post ID: {POST_ID}")
     print(f"User ID: {USER_ID}")
     print(f"Base URL: {BASE_URL}")
-    print(f"Token: {TOKEN}")
     print("")
 
     success_count = 0
     fail_count = 0
     rate_limit_count = 0
-    
+
     headers = {
         "Content-Type": "application/json",
         "Authorization": f'Bearer {{"token":"{TOKEN}"}}'

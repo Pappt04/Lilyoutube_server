@@ -7,12 +7,27 @@ import sys
 # Configuration
 BASE_URL = "http://localhost:8080/api/posts"
 POST_ID = "6aaa6bac-4d38-4d36-a818-a88c3d16fb4c"
-BEARER_TOKEN = "1db0abb2-77dc-4171-acbc-7222954d6b4a"
 NUM_REQUESTS = 100
 
-# API endpoints
-GET_URL = f"{BASE_URL}/{POST_ID}"
-VIEW_URL = f"{BASE_URL}/{POST_ID}/view"
+def authenticate():
+    """Login with credentials and get token."""
+    login_payload = {
+        "email": "papi@gmail.com",
+        "password": "papipapi"
+    }
+
+    try:
+        resp = requests.post("http://localhost:8080/api/auth/login", json=login_payload)
+        if resp.status_code == 200:
+            token = resp.json().get("token")
+            print(f"Login successful! Token: {token}")
+            return token
+        else:
+            print(f"Login failed ({resp.status_code}): {resp.text}")
+            return None
+    except Exception as e:
+        print(f"Login error: {e}")
+        return None
 
 # Colors for output
 RED = '\033[0;31m'
@@ -20,6 +35,13 @@ GREEN = '\033[0;32m'
 YELLOW = '\033[1;33m'
 BLUE = '\033[0;34m'
 NC = '\033[0m' # No Color
+
+# Global token variable (will be set after authentication)
+BEARER_TOKEN = None
+
+# API endpoints
+GET_URL = f"{BASE_URL}/{POST_ID}"
+VIEW_URL = f"{BASE_URL}/{POST_ID}/view"
 
 def print_header():
     print("============================================================")
@@ -60,8 +82,18 @@ def send_view_request(request_id):
         return f"ERROR:{e}"
 
 def run_test():
+    global BEARER_TOKEN
+
+    # Authenticate first
+    print("Step 0: Authenticating...")
+    BEARER_TOKEN = authenticate()
+    if not BEARER_TOKEN:
+        print(f"{RED}❌ Failed to authenticate. Exiting.{NC}")
+        sys.exit(1)
+    print("")
+
     print_header()
-    
+
     # Step 1: Get initial view count
     print("Step 1: Fetching initial view count...")
     initial_count = get_view_count()
