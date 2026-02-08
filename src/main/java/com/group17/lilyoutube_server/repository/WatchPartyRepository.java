@@ -12,9 +12,9 @@ import java.util.Optional;
 public interface WatchPartyRepository extends JpaRepository<WatchParty, Long> {
     Optional<WatchParty> findByRoomCode(String roomCode);
 
-    List<WatchParty> findByCreatorAndIsActiveTrue(User creator);
+    List<WatchParty> findByCreatorAndActiveTrue(User creator);
 
-    List<WatchParty> findByIsPublicTrueAndIsActiveTrue();
+    List<WatchParty> findByPublicRoomTrueAndActiveTrue();
 
     boolean existsByRoomCode(String roomCode);
 }

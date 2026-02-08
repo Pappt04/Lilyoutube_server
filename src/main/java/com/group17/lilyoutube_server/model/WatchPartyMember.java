@@ -7,30 +7,25 @@ import org.hibernate.annotations.CreationTimestamp;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "watch_parties")
+@Table(name = "watch_party_members",
+       uniqueConstraints = @UniqueConstraint(columnNames = {"watch_party_id", "user_id"}))
 @Data
-public class WatchParty {
+public class WatchPartyMember {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Long id;
 
-    @Column(nullable = false, unique = true)
-    private String roomCode;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "watch_party_id", nullable = false)
+    private WatchParty watchParty;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "creator_id", nullable = false)
-    private User creator;
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "current_video_id")
-    private Post currentVideo;
+    @JoinColumn(name = "user_id", nullable = false)
+    private User user;
 
     @CreationTimestamp
     @Column(nullable = false)
-    private LocalDateTime createdAt;
-
-    @Column(nullable = false, name = "is_public")
-    private boolean publicRoom = false;
+    private LocalDateTime joinedAt;
 
     @Column(nullable = false, name = "is_active")
     private boolean active = true;
