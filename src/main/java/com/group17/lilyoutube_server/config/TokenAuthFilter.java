@@ -2,6 +2,7 @@ package com.group17.lilyoutube_server.config;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.group17.lilyoutube_server.model.AuthToken;
+import com.group17.lilyoutube_server.monitoring.UserActivityMonitor;
 import com.group17.lilyoutube_server.repository.AuthTokenRepository;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -23,11 +24,12 @@ import java.util.Map;
 public class TokenAuthFilter extends OncePerRequestFilter {
 
     private final AuthTokenRepository authTokenRepository;
-
+    private final UserActivityMonitor userActivityMonitor;
     private final ObjectMapper mapper;
-    
-    public TokenAuthFilter(AuthTokenRepository authTokenRepository, ObjectMapper mapper) {
+  
+    public TokenAuthFilter(AuthTokenRepository authTokenRepository, UserActivityMonitor userActivityMonitor, ObjectMapper mapper) {
         this.authTokenRepository = authTokenRepository;
+        this.userActivityMonitor = userActivityMonitor;
         this.mapper = mapper;
     }
 
@@ -61,6 +63,7 @@ public class TokenAuthFilter extends OncePerRequestFilter {
                         null,
                         List.of(new SimpleGrantedAuthority("ROLE_USER")));
                 SecurityContextHolder.getContext().setAuthentication(auth);
+                userActivityMonitor.recordActivity(t.getUser().getEmail());
             } else if (t != null) {
                 authTokenRepository.deleteById(t.getId());
             }
