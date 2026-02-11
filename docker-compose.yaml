@@ -66,6 +66,7 @@ services:
     build: .
     environment:
       # Primary datasource - shared database
+      SPRING_LIQUIBASE_ENABLED: "false"
       DATABASE_HOST: db_shared
       DATABASE_PORT: 5432
       DATABASE_NAME: ${DATABASE_NAME}

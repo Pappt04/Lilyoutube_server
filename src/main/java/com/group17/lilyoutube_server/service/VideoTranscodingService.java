@@ -102,15 +102,25 @@ public class VideoTranscodingService {
         command.add("-b:a");
         command.add("128k");
 
-        // Faststart: moves moov atom to the front for web streaming
-        command.add("-movflags");
-        command.add("+faststart");
+        // HLS Settings
+        command.add("-hls_time");
+        command.add("10"); // 10 second segments
+        command.add("-hls_list_size");
+        command.add("0"); // Include all segments in the playlist
+        command.add("-f");
+        command.add("hls");
 
         // Scale: Max 1080p width, keep aspect ratio
         command.add("-vf");
         command.add("scale='min(1920,iw)':-2");
 
-        command.add(outputPath);
+        // Output filename should end with .m3u8
+        String hlsOutputPath = outputPath.replace(".mp4", ".m3u8");
+        String segmentFilename = hlsOutputPath.replace(".m3u8", "_%03d.ts");
+        
+        command.add("-hls_segment_filename");
+        command.add(segmentFilename);
+        command.add(hlsOutputPath);
 
         try {
             ProcessBuilder pb = new ProcessBuilder(command);

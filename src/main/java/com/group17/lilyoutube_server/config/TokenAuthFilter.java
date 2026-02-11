@@ -24,8 +24,11 @@ public class TokenAuthFilter extends OncePerRequestFilter {
 
     private final AuthTokenRepository authTokenRepository;
 
-    public TokenAuthFilter(AuthTokenRepository authTokenRepository) {
+    private final ObjectMapper mapper;
+    
+    public TokenAuthFilter(AuthTokenRepository authTokenRepository, ObjectMapper mapper) {
         this.authTokenRepository = authTokenRepository;
+        this.mapper = mapper;
     }
 
     @Override
@@ -47,7 +50,7 @@ public class TokenAuthFilter extends OncePerRequestFilter {
         }
 
         try {
-            ObjectMapper mapper = new ObjectMapper();
+
             Map<String, String> data = mapper.readValue(header.substring(7), Map.class);
             String token = data.get("token");
 

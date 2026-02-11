@@ -79,7 +79,10 @@ public class PostService {
 
         try {
             videoName = fileService.saveFile(videoFile, ServerConstants.videoDir);
-            postDTO.setVideoPath(videoName);
+
+            // Save as .m3u8 in DB so frontend requests HLS
+            postDTO.setVideoPath(videoName.replace(".mp4", ".m3u8"));
+            // postDTO.setVideoPath(videoName);
 
             thumbName = fileService.saveFile(thumbFile, ServerConstants.thumbDir);
             postDTO.setThumbnailPath(thumbName);
