@@ -18,7 +18,7 @@ public class AuthHandshakeInterceptor implements HandshakeInterceptor {
 
     private final AuthTokenRepository authTokenRepository;
 
-    public AuthHandshakeInterceptor(AuthTokenRepository authTokenRepository) {
+    public AuthHandshakeInterceptor(@org.springframework.context.annotation.Lazy AuthTokenRepository authTokenRepository) {
         this.authTokenRepository = authTokenRepository;
     }
 
