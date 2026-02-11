@@ -20,7 +20,11 @@ public class ChatWebSocketHandler extends TextWebSocketHandler {
 
     // store sessions per video: Map<VideoName, Set<Session>>
     private final Map<String, Set<WebSocketSession>> videoSessions = new ConcurrentHashMap<>();
-    private final ObjectMapper objectMapper = new ObjectMapper();
+    private final ObjectMapper objectMapper;
+
+    public ChatWebSocketHandler(ObjectMapper objectMapper) {
+        this.objectMapper = objectMapper;
+    }
 
     @Override
     public void afterConnectionEstablished(WebSocketSession session) throws Exception {

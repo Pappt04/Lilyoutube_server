@@ -25,6 +25,7 @@ public class PostController {
     private final UserService userService;
     private final LikeService likeService;
     private final ViewSyncService viewSyncService;
+    private final ObjectMapper objectMapper;
 
     @GetMapping
     public ResponseEntity<List<PostDTO>> getAllVideos() {
@@ -34,6 +35,9 @@ public class PostController {
     @GetMapping("/{name}")
     public ResponseEntity<PostDTO> getPostByVideoName(@PathVariable String name) {
         PostDTO post = postService.getPostByVideoName(name + ".mp4");
+        if (post == null) {
+            post = postService.getPostByVideoName(name + ".m3u8");
+        }
         if (post == null)
             return ResponseEntity.notFound().build();
         return ResponseEntity.ok(post);
@@ -45,7 +49,6 @@ public class PostController {
             @RequestPart("video") MultipartFile video,
             @RequestPart("thumbnail") MultipartFile thumbnail, Principal principal) throws Exception {
 
-        ObjectMapper objectMapper = new ObjectMapper();
         PostDTO postDTO = objectMapper.readValue(postJson, PostDTO.class);
 
         UserDTO usr = userService.getUserByEmail(principal.getName());
@@ -73,8 +76,13 @@ public class PostController {
 
     @PostMapping("/{name}/view")
     public ResponseEntity<Void> incrementViews(@PathVariable String name) {
-        name += ".mp4";
-        PostDTO p = postService.getPostByVideoName(name);
+        String videoName = name + ".m3u8";
+        PostDTO p = postService.getPostByVideoName(videoName);
+
+        if (p == null) {
+            p = postService.getPostByVideoName(name + ".mp4");
+        }
+        
         if (p == null)
             return ResponseEntity.notFound().build();
 
