@@ -24,7 +24,7 @@ public class TokenAuthFilter extends OncePerRequestFilter {
 
     private final AuthTokenRepository authTokenRepository;
 
-    public TokenAuthFilter(AuthTokenRepository authTokenRepository) {
+    public TokenAuthFilter(@org.springframework.context.annotation.Lazy AuthTokenRepository authTokenRepository) {
         this.authTokenRepository = authTokenRepository;
     }
 
