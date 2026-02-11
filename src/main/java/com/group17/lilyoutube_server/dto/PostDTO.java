@@ -19,4 +19,5 @@ public class PostDTO {
     private Long viewsCount;
     private Collection<String> tags;
     private LocalDateTime createdAt;
+    private LocalDateTime scheduledStartTime;
 }
