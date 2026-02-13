@@ -68,6 +68,7 @@ public class SecurityConfig {
                                                                 "/api/internal/**",
                                                                 "/actuator/**",
                                                                 "/api/stream/**",
+                                                                "/api/watchparty/*/ws",
                                                                 "/error")
                                                 .permitAll()
                                                 .requestMatchers(HttpMethod.GET, "/api/users", "/api/users/**",

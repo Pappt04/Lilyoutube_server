@@ -2,6 +2,7 @@ package com.group17.lilyoutube_server.handler;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.group17.lilyoutube_server.dto.watchparty.VideoSyncMessage;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import org.springframework.web.socket.CloseStatus;
 import org.springframework.web.socket.TextMessage;
@@ -19,7 +20,11 @@ public class WatchPartyWebSocketHandler extends TextWebSocketHandler {
 
     // Store sessions per room: Map<RoomCode, Set<Session>>
     private final Map<String, Set<WebSocketSession>> roomSessions = new ConcurrentHashMap<>();
-    private final ObjectMapper objectMapper = new ObjectMapper();
+    private final ObjectMapper objectMapper;
+
+    public WatchPartyWebSocketHandler(ObjectMapper objectMapper) {
+        this.objectMapper = objectMapper;
+    }
 
     @Override
     public void afterConnectionEstablished(WebSocketSession session) throws Exception {
@@ -50,12 +55,13 @@ public class WatchPartyWebSocketHandler extends TextWebSocketHandler {
         try {
             VideoSyncMessage syncMessage = objectMapper.readValue(payload, VideoSyncMessage.class);
 
-            // Validate message type
             if ("VIDEO_CHANGE".equals(syncMessage.getType())) {
-                System.out.println("Video change in room " + roomCode + " to video " + syncMessage.getVideoId() +
-                                 " (" + syncMessage.getVideoPath() + ")");
+                // Enrich with server-side username for security
+                syncMessage.setUsername(username);
+                System.out.println("Video change in room " + roomCode + " by " + username +
+                                 " to video: " + syncMessage.getVideoPath());
 
-                // Broadcast to all members in the room (excluding sender)
+                // Broadcast to all members in the room (excluding sender, like chat)
                 broadcastToRoom(roomCode, syncMessage, session);
             }
         } catch (Exception e) {
@@ -86,6 +92,28 @@ public class WatchPartyWebSocketHandler extends TextWebSocketHandler {
                     roomSessions.remove(roomCode);
                 }
             }
+        }
+    }
+
+    @Scheduled(fixedRate = 30000)
+    public void sendHeartbeat() {
+        try {
+            String heartbeatMessage = objectMapper.writeValueAsString(Map.of("type", "heartbeat"));
+            TextMessage message = new TextMessage(heartbeatMessage);
+
+            for (Set<WebSocketSession> sessions : roomSessions.values()) {
+                for (WebSocketSession session : sessions) {
+                    if (session.isOpen()) {
+                        try {
+                            session.sendMessage(message);
+                        } catch (IOException e) {
+                            System.err.println("Failed to send heartbeat to session " + session.getId() + ": " + e.getMessage());
+                        }
+                    }
+                }
+            }
+        } catch (Exception e) {
+            System.err.println("Error creating heartbeat message: " + e.getMessage());
         }
     }
 
