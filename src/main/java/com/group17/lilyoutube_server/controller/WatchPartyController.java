@@ -49,13 +49,13 @@ public class WatchPartyController {
         return ResponseEntity.ok().build();
     }
 
-    @PutMapping("/{roomCode}/video/{videoId}")
+    @PutMapping("/{roomCode}/video/{videoPath}")
     public ResponseEntity<WatchPartyResponse> updateCurrentVideo(
             @PathVariable String roomCode,
-            @PathVariable Long videoId,
+            @PathVariable String videoPath,
             Principal principal) {
         User user = userService.getUserEntityByEmail(principal.getName());
-        WatchPartyResponse response = watchPartyService.updateCurrentVideo(roomCode, user, videoId);
+        WatchPartyResponse response = watchPartyService.updateCurrentVideoByPath(roomCode, user, videoPath);
         return ResponseEntity.ok(response);
     }
 

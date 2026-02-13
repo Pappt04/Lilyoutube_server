@@ -29,7 +29,8 @@ public class WebSocketConfig implements WebSocketConfigurer {
                 .addInterceptors(authHandshakeInterceptor)
                 .setAllowedOrigins("*");
 
-        registry.addHandler(watchPartyWebSocketHandler, "/api/watchparty/*/ws")
+        // Watch Party WebSocket - matches frontend path: /ws/watchparty/{roomCode}
+        registry.addHandler(watchPartyWebSocketHandler, "/ws/watchparty/*")
                 .addInterceptors(authHandshakeInterceptor)
                 .setAllowedOrigins("*");
     }

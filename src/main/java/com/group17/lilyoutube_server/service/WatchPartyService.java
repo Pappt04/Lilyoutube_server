@@ -97,6 +97,14 @@ public class WatchPartyService {
         watchPartyMemberRepository.save(member);
 
         log.info("User {} left room {}", user.getUsername(), roomCode);
+
+        // Check if this was the last member
+        long activeMembers = watchPartyMemberRepository.countByWatchPartyAndActiveTrue(watchParty);
+        if (activeMembers == 0) {
+            log.info("No active members remaining in room {}. Deactivating watch party.", roomCode);
+            watchParty.setActive(false);
+            watchPartyRepository.save(watchParty);
+        }
     }
 
     @Transactional
@@ -124,6 +132,32 @@ public class WatchPartyService {
         return toResponse(watchParty);
     }
 
+    @Transactional
+    public WatchPartyResponse updateCurrentVideoByPath(String roomCode, User creator, String videoPath) {
+        log.info("Updating current video for room {} to video path {}", roomCode, videoPath);
+
+        WatchParty watchParty = watchPartyRepository.findByRoomCode(roomCode)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Watch party not found"));
+
+        if (!watchParty.getCreator().getId().equals(creator.getId())) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Only the creator can change the video");
+        }
+
+        if (!watchParty.isActive()) {
+            throw new ResponseStatusException(HttpStatus.GONE, "Watch party is no longer active");
+        }
+
+        // Find post by video path
+        Post video = postRepository.findByVideoPath(videoPath)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Video not found with path: " + videoPath));
+
+        watchParty.setCurrentVideo(video);
+        watchParty = watchPartyRepository.save(watchParty);
+
+        log.info("Current video updated for room {} to {}", roomCode, video.getTitle());
+        return toResponse(watchParty);
+    }
+
     public WatchPartyResponse getWatchParty(String roomCode) {
         WatchParty watchParty = watchPartyRepository.findByRoomCode(roomCode)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Watch party not found"));
@@ -135,6 +169,7 @@ public class WatchPartyService {
         return watchPartyRepository.findByPublicRoomTrueAndActiveTrue()
                 .stream()
                 .map(this::toResponse)
+                .filter(response -> response.getMemberCount() > 0)  // Filter out empty parties
                 .collect(Collectors.toList());
     }
 

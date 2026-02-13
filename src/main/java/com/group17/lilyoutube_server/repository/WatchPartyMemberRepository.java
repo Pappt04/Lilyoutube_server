@@ -18,4 +18,6 @@ public interface WatchPartyMemberRepository extends JpaRepository<WatchPartyMemb
     boolean existsByWatchPartyAndUserAndActiveTrue(WatchParty watchParty, User user);
 
     long countByWatchPartyAndActiveTrue(WatchParty watchParty);
+
+    void deleteByWatchParty(WatchParty watchParty);
 }

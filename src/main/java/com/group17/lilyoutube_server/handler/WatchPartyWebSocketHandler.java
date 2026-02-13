@@ -31,7 +31,8 @@ public class WatchPartyWebSocketHandler extends TextWebSocketHandler {
 
             // Notify other members that a new user joined
             VideoSyncMessage joinMessage = new VideoSyncMessage();
-            joinMessage.setType("member_joined");
+            joinMessage.setType("MEMBER_JOINED");
+            joinMessage.setRoomCode(roomCode);
             joinMessage.setUsername(username);
             joinMessage.setMemberCount(roomSessions.get(roomCode).size());
             broadcastToRoom(roomCode, joinMessage, session);
@@ -50,11 +51,12 @@ public class WatchPartyWebSocketHandler extends TextWebSocketHandler {
             VideoSyncMessage syncMessage = objectMapper.readValue(payload, VideoSyncMessage.class);
 
             // Validate message type
-            if ("video_change".equals(syncMessage.getType())) {
-                System.out.println("Video change in room " + roomCode + " to video " + syncMessage.getVideoId());
+            if ("VIDEO_CHANGE".equals(syncMessage.getType())) {
+                System.out.println("Video change in room " + roomCode + " to video " + syncMessage.getVideoId() +
+                                 " (" + syncMessage.getVideoPath() + ")");
 
-                // Broadcast to all members in the room
-                broadcastToRoom(roomCode, syncMessage, null);
+                // Broadcast to all members in the room (excluding sender)
+                broadcastToRoom(roomCode, syncMessage, session);
             }
         } catch (Exception e) {
             System.err.println("Error handling watch party message: " + e.getMessage());
@@ -74,7 +76,8 @@ public class WatchPartyWebSocketHandler extends TextWebSocketHandler {
 
                 // Notify other members that a user left
                 VideoSyncMessage leaveMessage = new VideoSyncMessage();
-                leaveMessage.setType("member_left");
+                leaveMessage.setType("MEMBER_LEFT");
+                leaveMessage.setRoomCode(roomCode);
                 leaveMessage.setUsername(username);
                 leaveMessage.setMemberCount(sessions.size());
                 broadcastToRoom(roomCode, leaveMessage, null);
