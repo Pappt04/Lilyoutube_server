@@ -74,7 +74,7 @@ public class SecurityConfig {
                                                                 "/api/posts", "/api/posts/**", "/api/media/**",
                                                                 "/api/comments", "/api/comments/**")
                                                 .permitAll()
-                                                .requestMatchers(HttpMethod.POST, "/api/posts/*/view")
+                                                .requestMatchers(HttpMethod.POST, "/api/posts/*/view","/api/popular-videos/trigger-etl")
                                                 .permitAll()
                                                 .anyRequest().authenticated());
 

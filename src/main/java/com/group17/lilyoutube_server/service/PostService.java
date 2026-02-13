@@ -3,9 +3,11 @@ package com.group17.lilyoutube_server.service;
 import com.group17.lilyoutube_server.dto.PostDTO;
 import com.group17.lilyoutube_server.model.Post;
 import com.group17.lilyoutube_server.model.User;
+import com.group17.lilyoutube_server.model.VideoView;
 import com.group17.lilyoutube_server.repository.UserRepository;
 import com.group17.lilyoutube_server.repository.PostRepository;
 import com.group17.lilyoutube_server.repository.LikeRepository;
+import com.group17.lilyoutube_server.repository.VideoViewRepository;
 import com.group17.lilyoutube_server.util.mappers.PostMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -29,6 +31,7 @@ public class PostService {
     private final PostRepository postRepository;
     private final UserRepository userRepository;
     private final LikeRepository likeRepository;
+    private final VideoViewRepository videoViewRepository;
     private final FileService fileService;
     private final VideoTranscodingService transcodingService;
 
@@ -137,6 +140,15 @@ public class PostService {
     public void incrementViews(Long id) {
         String key = "video_views:" + id;
         redisTemplate.opsForHash().increment(key, replicaName, 1);
+
+        // Log individual view for ETL pipeline
+        Post post = postRepository.findById(id).orElse(null);
+        if (post != null) {
+            VideoView videoView = VideoView.builder()
+                    .post(post)
+                    .build();
+            videoViewRepository.save(videoView);
+        }
     }
 
     public boolean isLikedByUser(Long postId, String userEmail) {
