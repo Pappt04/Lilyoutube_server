@@ -1,7 +1,6 @@
 import requests
 import time
 import os
-import re
 import sys
 
 # Colors for output
@@ -11,25 +10,25 @@ YELLOW = '\033[1;33m'
 BLUE = '\033[0;34m'
 NC = '\033[0m'
 
-def get_token_from_scripts():
-    """
-    Attempts to find an auth token in other python scripts in the same directory.
-    """
-    scripts_dir = os.path.dirname(os.path.abspath(__file__))
-    # List all python files in the scripts directory
-    for filename in os.listdir(scripts_dir):
-        if filename.endswith(".py") and filename != os.path.basename(__file__):
-            try:
-                with open(os.path.join(scripts_dir, filename), "r") as f:
-                    content = f.read()
-                    # Look for TOKEN = "..." or BEARER_TOKEN = "..."
-                    match = re.search(r'(?:TOKEN|BEARER_TOKEN)\s*=\s*["\']([^"\']+)["\']', content)
-                    if match:
-                        print(f"{GREEN}✓ Found token in {filename}{NC}")
-                        return match.group(1)
-            except Exception as e:
-                continue
-    return None
+def authenticate():
+    """Login with credentials and get token."""
+    login_payload = {
+        "email": "papi@gmail.com",
+        "password": "papipapi"
+    }
+
+    try:
+        resp = requests.post("http://localhost:8888/api/auth/login", json=login_payload)
+        if resp.status_code == 200:
+            token = resp.json().get("token")
+            print(f"{GREEN}✓ Login successful! Token acquired.{NC}")
+            return token
+        else:
+            print(f"{RED}Login failed ({resp.status_code}): {resp.text}{NC}")
+            return None
+    except Exception as e:
+        print(f"{RED}Login error: {e}{NC}")
+        return None
 
 def main():
     print(f"{BLUE}=========================================================={NC}")
@@ -40,11 +39,10 @@ def main():
     APP1_URL = "http://localhost:8081"
     APP2_URL = "http://localhost:8082"
     
-    # Step 0: Get the token
-    token = get_token_from_scripts()
+    # Step 0: Authenticate
+    token = authenticate()
     if not token:
-        print(f"{RED}Error: Could not find an authentication token in existing scripts.{NC}")
-        print(f"{YELLOW}Please ensure at least one script in this folder has a TOKEN variable.{NC}")
+        print(f"{RED}Error: Failed to authenticate.{NC}")
         sys.exit(1)
     
     headers = {

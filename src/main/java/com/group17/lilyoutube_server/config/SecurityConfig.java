@@ -7,12 +7,10 @@ import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.config.Customizer;
-import org.springframework.http.HttpMethod;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.cors.CorsConfiguration;
@@ -68,13 +66,16 @@ public class SecurityConfig {
                                                                 "/swagger-ui/**",
                                                                 "/swagger-ui.html",
                                                                 "/api/internal/**",
-                                                                "/actuator/health",
+                                                                "/actuator/**",
                                                                 "/api/stream/**",
+                                                                "/api/watchparty/*/ws",
                                                                 "/error")
                                                 .permitAll()
                                                 .requestMatchers(HttpMethod.GET, "/api/users", "/api/users/**",
                                                                 "/api/posts", "/api/posts/**", "/api/media/**",
                                                                 "/api/comments", "/api/comments/**")
+                                                .permitAll()
+                                                .requestMatchers(HttpMethod.POST, "/api/posts/*/view","/api/popular-videos/trigger-etl")
                                                 .permitAll()
                                                 .anyRequest().authenticated());
 

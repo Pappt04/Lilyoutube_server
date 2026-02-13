@@ -1,14 +1,40 @@
 import requests
 import json
+import sys
+
+def authenticate():
+    """Login with credentials and get token."""
+    login_payload = {
+        "email": "papi@gmail.com",
+        "password": "papipapi"
+    }
+
+    try:
+        resp = requests.post("http://localhost:8080/api/auth/login", json=login_payload)
+        if resp.status_code == 200:
+            token = resp.json().get("token")
+            print(f"Login successful! Token: {token}")
+            return token
+        else:
+            print(f"Login failed ({resp.status_code}): {resp.text}")
+            return None
+    except Exception as e:
+        print(f"Login error: {e}")
+        return None
 
 def test_comment_limit():
     # Hardcoded configuration based on provided request
     BASE_URL = "http://localhost:8080"
     POST_ID = 2
     USER_ID = 2
-    TOKEN = "1db0abb2-77dc-4171-acbc-7222954d6b4a"
     TEXT_PREFIX = "positive comment"
-    
+
+    # Authenticate first
+    TOKEN = authenticate()
+    if not TOKEN:
+        print("ERROR: Failed to authenticate. Exiting.")
+        sys.exit(1)
+
     headers = {
         "Authorization": f"Bearer {{\"token\":\"{TOKEN}\"}}",
         "Content-Type": "application/json"

@@ -2,15 +2,35 @@ import subprocess
 import time
 import os
 import sys
+import requests
 
 URL = "http://localhost:8080/api/posts"
-TOKEN = "993af60a-964b-4b25-9a51-a3425ed5391a"
 VIDEO_FILE = "/home/papp/Videos/menzans_backgroundlocation.mp4"
 THUMB_FILE = "/home/papp/Pictures/ftnsebudi.jpg"
 POST_DATA = '{"user_id":1, "title":"Test Video", "description":"Testing timeout", "tags":["test"]}'
 TIMEOUT_THRESHOLD = 60
 UPLOAD_RATE_SLOW = "20k"
 UPLOAD_RATE_FAST = "5000k"
+
+def authenticate():
+    """Login with credentials and get token."""
+    login_payload = {
+        "email": "papi@gmail.com",
+        "password": "papipapi"
+    }
+
+    try:
+        resp = requests.post("http://localhost:8080/api/auth/login", json=login_payload)
+        if resp.status_code == 200:
+            token = resp.json().get("token")
+            print(f"Login successful! Token: {token}")
+            return token
+        else:
+            print(f"Login failed ({resp.status_code}): {resp.text}")
+            return None
+    except Exception as e:
+        print(f"Login error: {e}")
+        return None
 
 def create_test_files():
     video_size = int(2.5 * 1024 * 1024)
@@ -22,7 +42,7 @@ def create_test_files():
     with open(THUMB_FILE, "wb") as f:
         f.write(os.urandom(thumb_size))
 
-def test_upload(rate_limit, expected_to_timeout=False):
+def test_upload(token, rate_limit, expected_to_timeout=False):
     test_name = "slow_upload" if expected_to_timeout else "fast_upload"
     print(f"Testing {test_name} (rate={rate_limit})...")
 
@@ -31,7 +51,7 @@ def test_upload(rate_limit, expected_to_timeout=False):
     curl_command = [
         "curl", "-s", "-w", "\\nHTTP_CODE:%{http_code}",
         "-X", "POST", URL,
-        "-H", f'Authorization: Bearer {{"token":"{TOKEN}"}}',
+        "-H", f'Authorization: Bearer {{"token":"{token}"}}',
         "--limit-rate", rate_limit,
         "--max-time", str(TIMEOUT_THRESHOLD + 10),
         "-F", f"post={POST_DATA}",
@@ -73,10 +93,18 @@ def cleanup():
             os.remove(f)
 
 def main():
+    # Authenticate first
+    print("Authenticating...")
+    token = authenticate()
+    if not token:
+        print("ERROR: Failed to authenticate. Exiting.")
+        sys.exit(1)
+    print("")
+
     create_test_files()
 
-    test1_passed = test_upload(UPLOAD_RATE_FAST, expected_to_timeout=False)
-    test2_passed = test_upload(UPLOAD_RATE_SLOW, expected_to_timeout=True)
+    test1_passed = test_upload(token, UPLOAD_RATE_FAST, expected_to_timeout=False)
+    test2_passed = test_upload(token, UPLOAD_RATE_SLOW, expected_to_timeout=True)
 
     cleanup()
 

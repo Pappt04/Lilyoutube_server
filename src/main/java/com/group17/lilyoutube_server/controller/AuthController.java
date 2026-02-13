@@ -22,6 +22,7 @@ public class AuthController {
 
     @PostMapping("/register")
     public String register(@Valid @RequestBody RegisterRequest req) {
+        baseUrl="http://localhost:8888";
         User user= authService.register(req);
         String activationLink = baseUrl + "/api/auth/activate?token=" + user.getActivationToken();
         emailService.sendSimpleEmail(user.getEmail(),"Activate your account", activationLink);
