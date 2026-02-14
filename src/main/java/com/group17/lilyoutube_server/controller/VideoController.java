@@ -103,20 +103,14 @@ public class VideoController {
         List<HlsSegment> segments = new ArrayList<>();
         
         boolean headerDone = false;
-        double currentDuration = 0.0;
-        
-        double targetTagDuration = 10.0; // Default fallback
 
         for (int i = 0; i < lines.size(); i++) {
             String line = lines.get(i);
             
             if (line.startsWith("#EXT-X-TARGETDURATION:")) {
-                try {
-                     targetTagDuration = Double.parseDouble(line.substring(22));
-                } catch (Exception e) {}
                 header.add(line);
             } else if (line.startsWith("#EXT-X-ENDLIST")) {
-                continue; 
+                continue;
             } else if (line.startsWith("#EXTINF:")) {
                 headerDone = true;
                 String durationStr = line.substring(8, line.indexOf(","));
@@ -148,7 +142,7 @@ public class VideoController {
              return createM3u8Response(response);
         }
         
-        int windowSize = 3;
+        int windowSize = 5;
 
         int liveIndex = 0;
         double accumulated = 0.0;
